@@ -1,12 +1,8 @@
-version: "3.7"
+version: "3.8"
 services:
-  dashboard-airtraffic:
-    build:
-      context: .
-    image: dashboard-airtraffic:1.0.0
-    container_name: dashboard-airtraffic
+  app:
+    build: ./app/
     ports:
       - "8050:8050"
-    environment:
-      - TARGET=LIVE
-    restart: unless-stopped
+  db:
+    build: ./db/ 
