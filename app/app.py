@@ -1,4 +1,5 @@
 import dash
+from sqlalchemy import create_engine
 from dash import html as html
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
@@ -27,6 +28,7 @@ app.layout = html.Div(children=[
 
 ])
 
+db_conn = create_engine("postgresql://username:secret@db:5432/database")
 
 server = app.server
 
