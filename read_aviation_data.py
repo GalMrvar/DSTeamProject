@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 #2020
-filepath20 = "app/flights/2020-States-Flights.csv"
+filepath20 = "app/data/flights/2020-States-Flights.csv"
 
 flight_data_2020 = pd.read_csv(filepath20,
                                sep=";",
@@ -17,7 +17,7 @@ che_flights20_data = filtered[(filtered['Day']>='2020-01-01') & (filtered['Entit
 isr_flights20_data = filtered[(filtered['Day']>='2020-01-01') & (filtered['Entity'].isin(['Israel']))]
 
 #2021
-filepath21 = "app/flights/2021-States-Flights.csv"
+filepath21 = "app/data/flights/2021-States-Flights.csv"
 
 
 flight_data_2021 = pd.read_csv(filepath21,
