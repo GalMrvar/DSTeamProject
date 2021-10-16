@@ -4,5 +4,16 @@ services:
     build: ./app/
     ports:
       - "8050:8050"
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
   db:
-    build: ./db/ 
+    image: postgres:latest
+    build: ./db/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d database -U username"]
+      interval: 5s
+      timeout: 5s
+      retries: 5 
