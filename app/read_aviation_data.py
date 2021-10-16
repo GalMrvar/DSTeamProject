@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pandas as pd
 from sqlalchemy import create_engine
 #2020
@@ -79,3 +80,4 @@ print("_______________________________________")
 print("_______________________________________")
 aviation_switzerland_21_df.to_sql('switzerland_aviation_21', db_conn, if_exists='replace', index = False)
 df2 = pd.read_sql_query('SELECT "Entity" FROM switzerland_aviation_21',db_conn)
+

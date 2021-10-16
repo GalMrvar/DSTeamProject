@@ -18,18 +18,15 @@ che_vaccination_data = filtered[(filtered['date']>'2020-12-21') & (filtered['iso
 isr_vaccination_data = filtered[(filtered['date']>'2020-12-18') & (filtered['iso_code'].isin(['ISR']))]
 
 #calculate the percentage of vaccinated people by country
-isr_vaccination_data['people_fully_vaccinated_in_percentage'] = isr_vaccination_data['people_fully_vaccinated']/isr_vaccination_data['population']
-deu_vaccination_data['people_fully_vaccinated_in_percentage'] = deu_vaccination_data['people_fully_vaccinated']/deu_vaccination_data['population']
-che_vaccination_data['people_fully_vaccinated_in_percentage'] = che_vaccination_data['people_fully_vaccinated']/che_vaccination_data['population']
+isr_vaccination_data.loc[:, ['people_fully_vaccinated_in_percentage']] = isr_vaccination_data['people_fully_vaccinated']/isr_vaccination_data['population']
+deu_vaccination_data.loc[:, ['people_fully_vaccinated_in_percentage']] = deu_vaccination_data['people_fully_vaccinated']/deu_vaccination_data['population']
+che_vaccination_data.loc[:, ['people_fully_vaccinated_in_percentage']] = che_vaccination_data['people_fully_vaccinated']/che_vaccination_data['population']
 
 #merge the processed data into one dataframe
-vaccination_data_processed = [che_vaccination_data, deu_vaccination_data, isr_vaccination_data]
-print(type(vaccination_data_processed))
+vaccination_data_processed = che_vaccination_data.append(deu_vaccination_data)
+vaccination_data_processed = vaccination_data_processed.append(isr_vaccination_data)
+print(vaccination_data_processed)
 
-db_conn = create_engine("postgresql://username:secret@db:5432/database")
-
-df = pd.DataFrame(vaccination_data_processed)
-df.to_sql('vaccinations', db_conn, if_exists='replace')
-df2 = pd.read_sql_query('SELECT people_fully_vaccinated_in_percentage FROM vaccinations',db_conn)
-print(df2)
-#print(vaccination_data_processed)
+'''db_conn = create_engine("postgresql://username:secret@db:5432/database")
+vaccination_data_processed.to_sql('vaccinations', db_conn, if_exists='replace')
+df2 = pd.read_sql_query('SELECT iso_code, people_fully_vaccinated_in_percentage FROM vaccinations',db_conn)'''
