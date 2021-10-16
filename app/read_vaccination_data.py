@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-filepath = "app/data/covid/owid-covid-data.csv"
+filepath = "data/covid/owid-covid-data.csv"
 
 rows_to_keep = ['AFG']
 vaccination_data = pd.read_csv(filepath,
