@@ -27,6 +27,6 @@ vaccination_data_processed = che_vaccination_data.append(deu_vaccination_data)
 vaccination_data_processed = vaccination_data_processed.append(isr_vaccination_data)
 print(vaccination_data_processed)
 
-'''db_conn = create_engine("postgresql://username:secret@db:5432/database")
+db_conn = create_engine("postgresql://username:secret@db:5432/database")
 vaccination_data_processed.to_sql('vaccinations', db_conn, if_exists='replace')
-df2 = pd.read_sql_query('SELECT iso_code, people_fully_vaccinated_in_percentage FROM vaccinations',db_conn)'''
+df2 = pd.read_sql_query('SELECT iso_code, people_fully_vaccinated_in_percentage FROM vaccinations',db_conn)
