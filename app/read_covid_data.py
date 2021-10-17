@@ -31,8 +31,8 @@ with pd.option_context('display.max_rows', None, 'display.max_columns', None):  
     print(pd_germany.dtypes)
 
     
-covid_data_processed = [pd_germany, pd_switzerland, pd_israel]
-print(type(covid_data_processed))
+covid_data_processed = pd_germany.append(pd_switzerland)
+covid_data_processed = covid_data_processed.append(pd_israel)
 
 db_conn = create_engine("postgresql://username:secret@db:5432/database")
 

@@ -34,49 +34,13 @@ che_flights21_data = filtered21[(filtered21['Day']>='2021-01-01') & (filtered21[
 isr_flights21_data = filtered21[(filtered21['Day']>='2021-01-01') & (filtered21['Entity'].isin(['Israel']))]
 
 #merge the processed data into one dataframe
-flights_data_processed = [che_flights20_data, deu_flights20_data, isr_flights20_data, che_flights21_data, deu_flights21_data, isr_flights21_data,]
+flights_data_processed = deu_flights20_data.append(che_flights20_data)
+flights_data_processed = flights_data_processed.append(isr_flights20_data)
+flights_data_processed = flights_data_processed.append(deu_flights21_data)
+flights_data_processed = flights_data_processed.append(che_flights21_data)
+flights_data_processed = flights_data_processed.append(isr_flights21_data)
 
 db_conn = create_engine("postgresql://username:secret@db:5432/database")
 
-aviation_german_20_df = pd.DataFrame(deu_flights20_data)
-print("_______________________________________")
-#print(aviation_german_20_df)
-print("_______________________________________")
-aviation_german_20_df.to_sql('german_aviation_20', db_conn, if_exists='replace', index = False)
-df2 = pd.read_sql_query('SELECT "Entity" FROM german_aviation_20',db_conn)
-
-aviation_israel_20_df = pd.DataFrame(isr_flights20_data)
-print("_______________________________________")
-#print(aviation_israel_20_df)
-print("_______________________________________")
-aviation_israel_20_df.to_sql('israel_aviation_20', db_conn, if_exists='replace', index = False)
-df2 = pd.read_sql_query('SELECT "Entity" FROM israel_aviation_20',db_conn)
-
-aviation_switzerland_20_df = pd.DataFrame(che_flights20_data)
-print("_______________________________________")
-#print(aviation_switzerland_20_df)
-print("_______________________________________")
-aviation_switzerland_20_df.to_sql('switzerland_aviation_20', db_conn, if_exists='replace', index = False)
-df2 = pd.read_sql_query('SELECT "Entity" FROM switzerland_aviation_20',db_conn)
-
-aviation_german_21_df = pd.DataFrame(deu_flights21_data)
-print("_______________________________________")
-#print(aviation_german_21_df)
-print("_______________________________________")
-aviation_german_21_df.to_sql('german_aviation_21', db_conn, if_exists='replace', index = False)
-df2 = pd.read_sql_query('SELECT "Entity" FROM german_aviation_21',db_conn)
-
-aviation_israel_21_df = pd.DataFrame(isr_flights21_data)
-print("_______________________________________")
-#print(aviation_israel_21_df)
-print("_______________________________________")
-aviation_israel_21_df.to_sql('israel_aviation_21', db_conn, if_exists='replace', index = False)
-df2 = pd.read_sql_query('SELECT "Entity" FROM israel_aviation_21',db_conn)
-
-aviation_switzerland_21_df = pd.DataFrame(che_flights21_data)
-print("_______________________________________")
-#print(aviation_switzerland_21_df)
-print("_______________________________________")
-aviation_switzerland_21_df.to_sql('switzerland_aviation_21', db_conn, if_exists='replace', index = False)
-df2 = pd.read_sql_query('SELECT "Entity" FROM switzerland_aviation_21',db_conn)
+flights_data_processed.to_sql('aviation', db_conn, if_exists='replace')
 
