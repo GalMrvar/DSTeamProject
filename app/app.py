@@ -12,22 +12,22 @@ import read_vaccination_data
 import read_aviation_data
 import read_from_api
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output, State
 
 import plotly.express as px
 
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__)
 
 db_conn = create_engine("postgresql://username:secret@db:5432/database")
 
 app.logger.info(db_conn.connect())
 
-testdf2 = pd.read_sql_query('SELECT * FROM german_aviation_20',db_conn)
-
-
-import dash
+#BETÜL COMMENTS
+    #Had to comment this out, cause it threw an exception that there is no table 'german_aviation_20'
+#testdf2 = pd.read_sql_query('SELECT * FROM german_aviation_20',db_conn)
 
 
 # the style arguments for the sidebar.
@@ -58,7 +58,10 @@ CARD_TEXT_STYLE = {
     'color': '#0074D9'
 }
 
-controls = dbc.FormGroup(
+
+#BETÜL COMMENTS:
+    #Had to change here 'FormGroup' to 'CardGroup' for the template to run
+controls = dbc.CardGroup(
     [
         html.P('Dropdown', style={
             'textAlign': 'center'
@@ -141,8 +144,9 @@ controls = dbc.FormGroup(
             id='submit_button',
             n_clicks=0,
             children='Submit',
-            color='primary',
-            block=True
+            color='primary'
+#BETÜL COMMENTS:
+    #Had to delete 'block=True' here, cause it threw an exception that the attribute 'block' didn't exist
         ),
     ]
 )
@@ -155,64 +159,61 @@ sidebar = html.Div(
     ],
     style=SIDEBAR_STYLE,
 )
+content_intro_row = dbc.Row(
+    dbc.Col(
+        dbc.Card([
+            dbc.CardBody(
+                [
+                    html.H4(id='card_title_intro', children=['Click on the tab for the content. Thanks!'], className='card-title-intro',
+                            style=CARD_TEXT_STYLE),
+                    html.P(id='card_text_intro', children=['We need to decide if we want to have a homepage thingy or if we want to show the first tab on page load. WHAT COMES HERE???'], style=CARD_TEXT_STYLE),
+                ]
+            )
+        ])
+    )
+)
+content_descr_row = dbc.Row([
+    dbc.Col(
+        dbc.Card([
+            dbc.CardBody(
+                [
+                    html.H4(id='card_title_1', children=['Card Title 1'], className='card-title',
+                            style=CARD_TEXT_STYLE),
+                    html.P(id='card_text_1', children=['Sample text.'], style=CARD_TEXT_STYLE),
+                ]
+            )
+        ]),
+        md=6
+    ),
+    dbc.Col(
+        dbc.Card([
+            dbc.CardBody(
+                [
+                    html.H4('Card Title 2', className='card-title', style=CARD_TEXT_STYLE),
+                    html.P('Sample text.', style=CARD_TEXT_STYLE),
+                ]
+            ),
+        ]),
+        md=6
+    ),
+])
 
 content_first_row = dbc.Row([
     dbc.Col(
-        dbc.Card(
-            [
-
-                dbc.CardBody(
-                    [
-                        html.H4(id='card_title_1', children=['Card Title 1'], className='card-title',
-                                style=CARD_TEXT_STYLE),
-                        html.P(id='card_text_1', children=['Sample text.'], style=CARD_TEXT_STYLE),
-                    ]
-                )
-            ]
-        ),
-        md=3
-    ),
-    dbc.Col(
-        dbc.Card(
-            [
-
-                dbc.CardBody(
-                    [
-                        html.H4('Card Title 2', className='card-title', style=CARD_TEXT_STYLE),
-                        html.P('Sample text.', style=CARD_TEXT_STYLE),
-                    ]
-                ),
-            ]
-
-        ),
-        md=3
-    ),
-    dbc.Col(
-        dbc.Card(
-            [
-                dbc.CardBody(
-                    [
-                        html.H4('Card Title 3', className='card-title', style=CARD_TEXT_STYLE),
-                        html.P('Sample text.', style=CARD_TEXT_STYLE),
-                    ]
-                ),
-            ]
-
-        ),
-        md=3
-    ),
-    dbc.Col(
-        dbc.Card(
-            [
-                dbc.CardBody(
-                    [
-                        html.H4('Card Title 4', className='card-title', style=CARD_TEXT_STYLE),
-                        html.P('Sample text.', style=CARD_TEXT_STYLE),
-                    ]
-                ),
-            ]
-        ),
-        md=3
+        dcc.Tabs(id="tabs-example-graph", value='tab-1-example-graph', children=[
+            dcc.Tab(label='Map', children=[
+                content_descr_row,
+                dcc.Graph(id='graph_4')
+            ]),
+            dcc.Tab(label='Just flights', children=[
+                dcc.Graph(id='graph_3'),
+                dcc.Graph(id='graph_5')
+            ]),
+            dcc.Tab(label='Covid vs flights', children=[
+                dcc.Graph(id='graph_2'),
+                dcc.Graph(id='graph_6')
+            ]),
+        ])
     )
 ])
 
@@ -254,9 +255,10 @@ content = html.Div(
         html.H2('Analytics Dashboard Template', style=TEXT_STYLE),
         html.Hr(),
         content_first_row,
-        content_second_row,
-        content_third_row,
-        content_fourth_row
+        content_intro_row,
+        #content_second_row,
+        #content_third_row,
+        #content_fourth_row
     ],
     style=CONTENT_STYLE
 )
@@ -264,6 +266,24 @@ content = html.Div(
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = html.Div([sidebar, content])
 
+@app.callback(Output('tabs-content-example-graph', 'children'),
+              [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def render_content(tab):
+    if tab == 'tab-1-example-graph':
+        return html.Div(
+            content_third_row
+        )
+    elif tab == 'tab-2-example-graph':   
+        return html.Div(
+            content_fourth_row
+        )
+    elif tab == 'tab-3-example-graph':   
+        return html.Div(
+            content_second_row
+        )
 
 @app.callback(
     Output('graph_1', 'figure'),
