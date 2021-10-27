@@ -27,7 +27,7 @@ app.logger.info(db_conn.connect())
 
 #BETÜL COMMENTS
     #Had to comment this out, cause it threw an exception that there is no table 'german_aviation_20'
-#testdf2 = pd.read_sql_query('SELECT * FROM german_aviation_20',db_conn)
+#testdf2 = pd.read_sql_query('SELECT * FROM aviation,db_conn)
 
 
 # the style arguments for the sidebar.
@@ -252,7 +252,7 @@ content_fourth_row = dbc.Row(
 
 content = html.Div(
     [
-        html.H2('Analytics Dashboard Template', style=TEXT_STYLE),
+        html.H2('Flights Dashboard', style=TEXT_STYLE),
         html.Hr(),
         content_first_row,
         content_intro_row,
@@ -358,7 +358,7 @@ def update_graph_4(n_clicks, dropdown_value, range_slider_value, check_list_valu
     print(check_list_value)
     print(radio_items_value)  # Sample data and figure
     df = px.data.gapminder().query('year==2007')
-    fig = px.scatter_geo(df, locations='iso_alpha', color='continent',
+    fig = px.scatter_geo(df, locations='iso_alpha', color='continent',scope='europe',
                          hover_name='country', size='pop', projection='natural earth')
     fig.update_layout({
         'height': 600
