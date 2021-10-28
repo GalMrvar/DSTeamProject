@@ -16,8 +16,6 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 
-import plotly.express as px
-
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__)
 
@@ -27,7 +25,21 @@ app.logger.info(db_conn.connect())
 
 #BETÜL COMMENTS
     #Had to comment this out, cause it threw an exception that there is no table 'german_aviation_20'
-#testdf2 = pd.read_sql_query('SELECT * FROM aviation,db_conn)
+testdf2 = pd.read_sql_query('SELECT * FROM aviation',db_conn)
+df_1 = testdf2.filter(['Entity','Day','Flights'], axis=1)
+df_2 = testdf2.filter(['Entity','Day 2019', 'Flights 2019 (Reference)'], axis=1)
+df_2["Day 2019"]= pd.to_datetime(df_2["Day 2019"])
+df_1.rename(columns={'Entity':'Country'}, inplace=True)
+df_2.rename(columns={'Entity':'Country', 'Day 2019': 'Day', 'Flights 2019 (Reference)': 'Flights'}, inplace=True)
+
+df_1 = df_1.append(df_2)
+df_1 = df_1.sort_values(by=['Day'])
+df_1['Year'] = df_1['Day'].dt.year
+df_1['Month'] = df_1['Day'].dt.month
+df_1['Day_MM_DD'] = df_1['Day'].dt.strftime('%m-%d')
+df_ger = df_1[df_1['Country']=='Germany']
+df_che = df_1[df_1['Country']=='Switzerland']
+df_isr = df_1[df_1['Country']=='Israel']
 
 
 # the style arguments for the sidebar.
@@ -206,12 +218,13 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_4')
             ]),
             dcc.Tab(label='Just flights', children=[
-                dcc.Graph(id='graph_3'),
-                dcc.Graph(id='graph_5')
+                dcc.Graph(id='graph_1'),
+                dcc.Graph(id='graph_2'),
+                dcc.Graph(id='graph_3')
             ]),
             dcc.Tab(label='Covid vs flights', children=[
-                dcc.Graph(id='graph_2'),
-                dcc.Graph(id='graph_6')
+                #dcc.Graph(id='graph_3'),
+                dcc.Graph(id='graph_5')
             ]),
         ])
     )
@@ -252,7 +265,7 @@ content_fourth_row = dbc.Row(
 
 content = html.Div(
     [
-        html.H2('Flights Dashboard', style=TEXT_STYLE),
+        html.H2('Analytics Dashboard Template', style=TEXT_STYLE),
         html.Hr(),
         content_first_row,
         content_intro_row,
@@ -297,12 +310,14 @@ def update_graph_1(n_clicks, dropdown_value, range_slider_value, check_list_valu
     print(range_slider_value)
     print(check_list_value)
     print(radio_items_value)
-    fig = {
+    '''fig = {
         'data': [{
-            'x': [1, 2, 3],
-            'y': [3, 4, 5]
+            'x': testdf2['Day 2019'],
+            'y': testdf2['Flights 2019 (Reference)'],
+            'type': 'bar'
         }]
-    }
+    }'''
+    fig = px.line(df_che, x="Day", y="Flights", color='Year', title='Switzerland')
     return fig
 
 
@@ -318,13 +333,15 @@ def update_graph_2(n_clicks, dropdown_value, range_slider_value, check_list_valu
     print(range_slider_value)
     print(check_list_value)
     print(radio_items_value)
-    fig = {
+    
+    '''fig = {
         'data': [{
-            'x': [1, 2, 3],
-            'y': [3, 4, 5],
+            'x': df_ger.Day,
+            'y': df_ger.Flights,
             'type': 'bar'
         }]
-    }
+    }'''
+    fig = px.line(df_ger, x="Day", y="Flights", color='Year', title='Germany')
     return fig
 
 
@@ -340,8 +357,9 @@ def update_graph_3(n_clicks, dropdown_value, range_slider_value, check_list_valu
     print(range_slider_value)
     print(check_list_value)
     print(radio_items_value)
-    df = px.data.iris()
-    fig = px.density_contour(df, x='sepal_width', y='sepal_length')
+    #df = px.data.iris()
+    #fig = px.density_contour(df, x='sepal_width', y='sepal_length')
+    fig = px.line(df_isr, x="Day", y="Flights", color='Year',title='Israel')
     return fig
 
 
@@ -358,7 +376,7 @@ def update_graph_4(n_clicks, dropdown_value, range_slider_value, check_list_valu
     print(check_list_value)
     print(radio_items_value)  # Sample data and figure
     df = px.data.gapminder().query('year==2007')
-    fig = px.scatter_geo(df, locations='iso_alpha', color='continent',scope='europe',
+    fig = px.scatter_geo(df, locations='iso_alpha', color='continent',
                          hover_name='country', size='pop', projection='natural earth')
     fig.update_layout({
         'height': 600
