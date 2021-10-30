@@ -18,7 +18,7 @@ from dash.dependencies import Input, Output, State
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__)
-app.config.suppress_callback_exceptions = True
+
 db_conn = create_engine("postgresql://username:secret@db:5432/database")
 
 app.logger.info(db_conn.connect())
@@ -35,7 +35,6 @@ df_1 = df_1.append(df_2)
 df_1 = df_1.sort_values(by=['Day'])
 df_1['Year'] = df_1['Day'].dt.year
 df_1['Month'] = df_1['Day'].dt.month
-
 df_1['Day_MM_DD'] = df_1['Day'].dt.strftime('%d-%m')
 df_ger = df_1[df_1['Country']=='Germany']
 df_ger_2019 = df_ger[df_ger['Year']==2019]
@@ -87,8 +86,6 @@ CARD_TEXT_STYLE = {
     #Had to change here 'FormGroup' to 'CardGroup' for the template to run
 controls = dbc.CardGroup(
     [
-#BETÜL COMMENTS:
-    #Had to delete 'block=True' here, cause it threw an exception that the attribute 'block' didn't exist
     ]
 )
 
@@ -158,9 +155,9 @@ content_first_row = dbc.Row([
                     value=['Germany'],  # default value
                     multi=False
                 ),
-                dcc.Graph(id='graph_1', style={'display': 'none'}),
-                dcc.Graph(id='graph_2', style={'display': 'none'}),
-                dcc.Graph(id='graph_3', style={'display': 'none'})
+                dcc.Graph(id='graph_1', style = {'display':'none'}),
+                dcc.Graph(id='graph_2', style = {'display':'none'}),
+                dcc.Graph(id='graph_3', style = {'display':'none'})
             ]),
             dcc.Tab(label='Covid vs flights', children=[
                 #dcc.Graph(id='graph_3'),
@@ -240,16 +237,9 @@ def render_content(tab):
 
 @app.callback(
     Output('graph_1', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
-     State('radio_items', 'value')
-     ])
-def update_graph_1(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
-    print(n_clicks)
-    print(dropdown_value)
-    print(range_slider_value)
-    print(check_list_value)
-    print(radio_items_value)
+    [Input('country-dropdown', 'value')],
+    )
+def update_graph_1(dropdown_value):
     
     #fig = px.line(df_ger_2019, x="Day", y="Flights", color="Year")
     fig = go.Figure()
@@ -268,16 +258,9 @@ def update_graph_1(n_clicks, dropdown_value, range_slider_value, check_list_valu
 
 @app.callback(
     Output('graph_2', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
-     State('radio_items', 'value')
-     ])
-def update_graph_2(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
-    print(n_clicks)
-    print(dropdown_value)
-    print(range_slider_value)
-    print(check_list_value)
-    print(radio_items_value)
+    [Input('country-dropdown', 'value')],
+    )
+def update_graph_2(dropdown_value):
 
     #fig = px.line(df_ger, x="Day", y="Flights", color='Year', title='Germany')
     fig = go.Figure()
@@ -296,17 +279,9 @@ def update_graph_2(n_clicks, dropdown_value, range_slider_value, check_list_valu
 
 @app.callback(
     Output('graph_3', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
-     State('radio_items', 'value')
-     ])
-def update_graph_3(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
-    print(n_clicks)
-    print(dropdown_value)
-    print(range_slider_value)
-    print(check_list_value)
-    print(radio_items_value)
-    
+    [Input('country-dropdown', 'value')],
+)
+def update_graph_3(dropdown_value):
     #fig = px.line(df_isr, x="Day", y="Flights", color='Year',title='Israel')
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_isr_2019.Day, y=df_isr_2019.Flights, name='2019',
@@ -321,15 +296,101 @@ def update_graph_3(n_clicks, dropdown_value, range_slider_value, check_list_valu
                    yaxis_title='Flights per day')
     return fig
 
+
+@app.callback(
+    Output('graph_4', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_graph_4(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print(n_clicks)
+    print(dropdown_value)
+    print(range_slider_value)
+    print(check_list_value)
+    print(radio_items_value)  # Sample data and figure
+    df = px.data.gapminder().query('year==2007')
+    fig = px.scatter_geo(df, locations='iso_alpha', color='continent',
+                         hover_name='country', size='pop', projection='natural earth')
+    fig.update_layout({
+        'height': 600
+    })
+    return fig
+
+
+@app.callback(
+    Output('graph_5', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_graph_5(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print(n_clicks)
+    print(dropdown_value)
+    print(range_slider_value)
+    print(check_list_value)
+    print(radio_items_value)  # Sample data and figure
+    df = px.data.iris()
+    fig = px.scatter(df, x='sepal_width', y='sepal_length')
+    return fig
+
+
+@app.callback(
+    Output('graph_6', 'figure'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_graph_6(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print(n_clicks)
+    print(dropdown_value)
+    print(range_slider_value)
+    print(check_list_value)
+    print(radio_items_value)  # Sample data and figure
+    df = px.data.tips()
+    fig = px.bar(df, x='total_bill', y='day', orientation='h')
+    return fig
+
+
+@app.callback(
+    Output('card_title_1', 'children'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_card_title_1(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print(n_clicks)
+    print(dropdown_value)
+    print(range_slider_value)
+    print(check_list_value)
+    print(radio_items_value)  # Sample data and figure
+    return 'Card Tile 1 change by call back'
+
+
+@app.callback(
+    Output('card_text_1', 'children'),
+    [Input('submit_button', 'n_clicks')],
+    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
+     State('radio_items', 'value')
+     ])
+def update_card_text_1(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
+    print(n_clicks)
+    print(dropdown_value)
+    print(range_slider_value)
+    print(check_list_value)
+    print(radio_items_value)  # Sample data and figure
+    return 'Card text change by call back'
+
+
+#Callbacks that display a graph depending on the country selected in the dropdow
+
 @app.callback(
     Output("graph_1", "style"),
-    [
-        Input("country-dropdown", "value")
-    ],
+    [Input("country-dropdown", "value")],
 )
 
 def update_chart_germany(country):
-    if country == "Germany":
+    if country == "Switzerland":
         return {'display':'inline'}
     else :
         return {'display':'none'}
@@ -342,7 +403,7 @@ def update_chart_germany(country):
 )
 
 def update_chart_switzerland(country):
-    if country == "Switzerland":
+    if country == "Germany":
         return {'display':'inline'}
     else :
         return {'display':'none'}
@@ -359,6 +420,7 @@ def update_chart_israel(country):
         return {'display':'inline'}
     else :
         return {'display':'none'}
+
 
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0")
