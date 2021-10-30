@@ -81,6 +81,16 @@ CARD_TEXT_STYLE = {
     'color': '#0074D9'
 }
 
+FILTER_STYLE = {
+    'textAlign': 'Left',
+    'color': '#0074D9',
+    'margin-left': '5%',
+    'margin-right': '65%',
+    'margin-top': '5%',
+    'margin-bottom': '5%',
+    'padding': '20px 10p'
+}
+
 
 #BETÜL COMMENTS:
     #Had to change here 'FormGroup' to 'CardGroup' for the template to run
@@ -91,12 +101,13 @@ controls = dbc.CardGroup(
 
 sidebar = html.Div(
     [
-        html.H2('Parameters', style=TEXT_STYLE),
+        html.H2('Live Data', style=TEXT_STYLE),
         html.Hr(),
         controls
     ],
     style=SIDEBAR_STYLE,
 )
+'''
 content_intro_row = dbc.Row(
     dbc.Col(
         dbc.Card([
@@ -109,7 +120,7 @@ content_intro_row = dbc.Row(
             )
         ])
     )
-)
+)'''
 content_descr_row = dbc.Row([
     dbc.Col(
         dbc.Card([
@@ -146,15 +157,17 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_4')
             ]),
             dcc.Tab(label='Just flights', children=[
-                dcc.Dropdown(
-                    id='country-dropdown',
-                    options=[
-                        {"label": row[0], "value": row[0]}
-                        for index, row in country_df.iterrows()
-                    ],
-                    value=['Germany'],  # default value
-                    multi=False
-                ),
+                html.Div([
+                    dcc.Dropdown(
+                        id='country-dropdown',
+                        options=[
+                            {"label": row[0], "value": row[0]}
+                            for index, row in country_df.iterrows()
+                        ],
+                        multi=False
+                    )
+                ],
+                style=FILTER_STYLE,),
                 dcc.Graph(id='graph_1', style = {'display':'none'}),
                 dcc.Graph(id='graph_2', style = {'display':'none'}),
                 dcc.Graph(id='graph_3', style = {'display':'none'})
@@ -162,6 +175,10 @@ content_first_row = dbc.Row([
             dcc.Tab(label='Covid vs flights', children=[
                 #dcc.Graph(id='graph_3'),
                 dcc.Graph(id='graph_5')
+            ]),
+            dcc.Tab(label='Predictions', children=[
+                #dcc.Graph(id='graph_3'),
+                #dcc.Graph(id='graph_5')
             ]),
         ])
     )
@@ -202,10 +219,10 @@ content_fourth_row = dbc.Row(
 
 content = html.Div(
     [
-        html.H2('Analytics Dashboard Template', style=TEXT_STYLE),
+        html.H2('Air Traffic and Covid Dashboard', style=TEXT_STYLE),
         html.Hr(),
         content_first_row,
-        content_intro_row,
+        #content_intro_row,
         #content_second_row,
         #content_third_row,
         #content_fourth_row
@@ -391,7 +408,7 @@ def update_card_text_1(n_clicks, dropdown_value, range_slider_value, check_list_
 
 def update_chart_germany(country):
     if country == "Switzerland":
-        return {'display':'inline'}
+        return {'display':'block'}
     else :
         return {'display':'none'}
 
@@ -404,7 +421,7 @@ def update_chart_germany(country):
 
 def update_chart_switzerland(country):
     if country == "Germany":
-        return {'display':'inline'}
+        return {'display':'block'}
     else :
         return {'display':'none'}
 
@@ -417,7 +434,7 @@ def update_chart_switzerland(country):
 
 def update_chart_israel(country):
     if country == "Israel":
-        return {'display':'inline'}
+        return {'display':'block'}
     else :
         return {'display':'none'}
 
