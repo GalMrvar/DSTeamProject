@@ -23,8 +23,7 @@ db_conn = create_engine("postgresql://username:secret@db:5432/database")
 
 app.logger.info(db_conn.connect())
 
-#BETÜL COMMENTS
-    #Had to comment this out, cause it threw an exception that there is no table 'german_aviation_20'
+#data frames for aviation data
 testdf2 = pd.read_sql_query('SELECT * FROM aviation',db_conn)
 df_1 = testdf2.filter(['Entity','Day','Flights'], axis=1)
 df_2 = testdf2.filter(['Entity','Day 2019', 'Flights 2019 (Reference)'], axis=1)
@@ -36,10 +35,22 @@ df_1 = df_1.append(df_2)
 df_1 = df_1.sort_values(by=['Day'])
 df_1['Year'] = df_1['Day'].dt.year
 df_1['Month'] = df_1['Day'].dt.month
-df_1['Day_MM_DD'] = df_1['Day'].dt.strftime('%m-%d')
+df_1['Day_MM_DD'] = df_1['Day'].dt.strftime('%d-%m')
 df_ger = df_1[df_1['Country']=='Germany']
+df_ger_2019 = df_ger[df_ger['Year']==2019]
+df_ger_2019 = df_ger_2019.drop_duplicates()
+df_ger_2020 = df_ger[df_ger['Year']==2020]
+df_ger_2021 = df_ger[df_ger['Year']==2021]
 df_che = df_1[df_1['Country']=='Switzerland']
+df_che_2019 = df_che[df_che['Year']==2019]
+df_che_2019 = df_che_2019.drop_duplicates()
+df_che_2020 = df_che[df_che['Year']==2020]
+df_che_2021 = df_che[df_che['Year']==2021]
 df_isr = df_1[df_1['Country']=='Israel']
+df_isr_2019 = df_isr[df_isr['Year']==2019]
+df_isr_2019 = df_isr_2019.drop_duplicates()
+df_isr_2020 = df_isr[df_isr['Year']==2020]
+df_isr_2021 = df_isr[df_isr['Year']==2021]
 
 
 # the style arguments for the sidebar.
@@ -310,14 +321,19 @@ def update_graph_1(n_clicks, dropdown_value, range_slider_value, check_list_valu
     print(range_slider_value)
     print(check_list_value)
     print(radio_items_value)
-    '''fig = {
-        'data': [{
-            'x': testdf2['Day 2019'],
-            'y': testdf2['Flights 2019 (Reference)'],
-            'type': 'bar'
-        }]
-    }'''
-    fig = px.line(df_che, x="Day", y="Flights", color='Year', title='Switzerland')
+    
+    #fig = px.line(df_ger_2019, x="Day", y="Flights", color="Year")
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_che_2019.Day, y=df_che_2019.Flights, name='2019',
+                        line = dict(color='blue', width=2)))
+    fig.add_trace(go.Scatter(x=df_che_2019.Day, y=df_che_2020.Flights, name='2020',
+                        line = dict(color='red', width=2)))
+    fig.add_trace(go.Scatter(x=df_che_2019.Day, y=df_che_2021.Flights, name='2021',
+                        line=dict(color='green', width=2)))
+    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.update_layout(title='Switzerland',
+                   xaxis_title='Month',
+                   yaxis_title='Flights per day')
     return fig
 
 
@@ -333,15 +349,19 @@ def update_graph_2(n_clicks, dropdown_value, range_slider_value, check_list_valu
     print(range_slider_value)
     print(check_list_value)
     print(radio_items_value)
-    
-    '''fig = {
-        'data': [{
-            'x': df_ger.Day,
-            'y': df_ger.Flights,
-            'type': 'bar'
-        }]
-    }'''
-    fig = px.line(df_ger, x="Day", y="Flights", color='Year', title='Germany')
+
+    #fig = px.line(df_ger, x="Day", y="Flights", color='Year', title='Germany')
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_ger_2019.Day, y=df_ger_2019.Flights, name='2019',
+                        line = dict(color='blue', width=2)))
+    fig.add_trace(go.Scatter(x=df_ger_2019.Day, y=df_ger_2020.Flights, name='2020',
+                        line = dict(color='red', width=2)))
+    fig.add_trace(go.Scatter(x=df_ger_2019.Day, y=df_ger_2021.Flights, name='2021',
+                        line=dict(color='green', width=2)))
+    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.update_layout(title='Germany',
+                   xaxis_title='Month',
+                   yaxis_title='Flights per day')
     return fig
 
 
@@ -357,9 +377,19 @@ def update_graph_3(n_clicks, dropdown_value, range_slider_value, check_list_valu
     print(range_slider_value)
     print(check_list_value)
     print(radio_items_value)
-    #df = px.data.iris()
-    #fig = px.density_contour(df, x='sepal_width', y='sepal_length')
-    fig = px.line(df_isr, x="Day", y="Flights", color='Year',title='Israel')
+    
+    #fig = px.line(df_isr, x="Day", y="Flights", color='Year',title='Israel')
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_isr_2019.Day, y=df_isr_2019.Flights, name='2019',
+                        line = dict(color='blue', width=2)))
+    fig.add_trace(go.Scatter(x=df_isr_2019.Day, y=df_isr_2020.Flights, name='2020',
+                        line = dict(color='red', width=2)))
+    fig.add_trace(go.Scatter(x=df_isr_2019.Day, y=df_isr_2021.Flights, name='2021',
+                        line=dict(color='green', width=2)))
+    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.update_layout(title='Israel',
+                   xaxis_title='Month',
+                   yaxis_title='Flights per day')
     return fig
 
 
