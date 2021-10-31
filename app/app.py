@@ -58,7 +58,13 @@ df_vacc_ger = df_vacc[df_vacc['location']=='Germany']
 df_vacc_che = df_vacc[df_vacc['location']=='Switzerland']
 df_vacc_isr = df_vacc[df_vacc['location']=='Israel']
 
+#Data frames for api data
+germany = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Germany' AND "Cases" != 0 ORDER BY "Date" ASC """,db_conn)
+israel = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" != 0 ORDER BY "Date" ASC """,db_conn)
+switzerland = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" != 0 ORDER BY "Date" ASC """,db_conn)
 
+#israel.iloc[-1]["Cases"]
+#switzerland.iloc[-1]["Cases"]
 # the style arguments for the sidebar.
 SIDEBAR_STYLE = {
     'position': 'fixed',
@@ -108,6 +114,15 @@ controls = dbc.CardGroup(
 sidebar = html.Div(
     [
         html.H2('Live Data', style=TEXT_STYLE),
+        html.Hr(),
+        html.H3('Germany', style=TEXT_STYLE),
+        html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(germany.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.Hr(),
+        html.H3('Switzerland', style=TEXT_STYLE),
+        html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(switzerland.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.Hr(),
+        html.H3('Israel', style=TEXT_STYLE),
+        html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(israel.iloc[-1]["Cases"]), style=TEXT_STYLE),
         html.Hr(),
         controls
     ],
