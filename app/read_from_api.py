@@ -71,7 +71,7 @@ def processDataFromApi(dateFrom, newTable):
         
 if(inspect(db_conn).has_table("apiCases")):
     #old table add update and append missing values
-    date = pd.read_sql_query('SELECT MAX("Date") FROM "apiCases" WHERE "Cases" != 0 ',db_conn)
+    date = pd.read_sql_query('SELECT MAX("Date") FROM "apiCases" WHERE "Cases" > 0 ',db_conn)
     date = pd.to_datetime(date["max"])
     processDataFromApi(date.iloc[0], False)
 else:
