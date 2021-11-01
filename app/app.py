@@ -52,7 +52,19 @@ df_isr_2019 = df_isr_2019.drop_duplicates()
 df_isr_2020 = df_isr[df_isr['Year']==2020]
 df_isr_2021 = df_isr[df_isr['Year']==2021]
 
+#Data frames for vaccinations data
+df_vacc = pd.read_sql_query('SELECT * FROM vaccinations',db_conn)
+df_vacc_ger = df_vacc[df_vacc['location']=='Germany']
+df_vacc_che = df_vacc[df_vacc['location']=='Switzerland']
+df_vacc_isr = df_vacc[df_vacc['location']=='Israel']
 
+#Data frames for api data
+germany = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Germany' AND "Cases" > 0 ORDER BY "Date" ASC """,db_conn)
+israel = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" > 0 ORDER BY "Date" ASC """,db_conn)
+switzerland = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" > 0 ORDER BY "Date" ASC """,db_conn)
+
+#israel.iloc[-1]["Cases"]
+#switzerland.iloc[-1]["Cases"]
 # the style arguments for the sidebar.
 SIDEBAR_STYLE = {
     'position': 'fixed',
@@ -76,6 +88,11 @@ TEXT_STYLE = {
     'color': '#191970'
 }
 
+TEXT_INFO_STYLE = {
+    'textAlign': 'lefrt',
+    'color': '#191970'
+}
+
 CARD_TEXT_STYLE = {
     'textAlign': 'center',
     'color': '#0074D9'
@@ -87,7 +104,7 @@ FILTER_STYLE = {
     'margin-left': '5%',
     'margin-right': '65%',
     'margin-top': '5%',
-    'margin-bottom': '5%',
+    'margin-bottom': '2%',
     'padding': '20px 10p'
 }
 
@@ -102,6 +119,15 @@ controls = dbc.CardGroup(
 sidebar = html.Div(
     [
         html.H2('Live Data', style=TEXT_STYLE),
+        html.Hr(),
+        html.H3('Germany', style=TEXT_STYLE),
+        html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(germany.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.Hr(),
+        html.H3('Switzerland', style=TEXT_STYLE),
+        html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(switzerland.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.Hr(),
+        html.H3('Israel', style=TEXT_STYLE),
+        html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(israel.iloc[-1]["Cases"]), style=TEXT_STYLE),
         html.Hr(),
         controls
     ],
@@ -151,12 +177,14 @@ country_df = pd.read_sql_query('SELECT distinct "Entity" FROM aviation',db_conn)
 
 content_first_row = dbc.Row([
     dbc.Col(
-        dcc.Tabs(id="tabs-example-graph", value='tab-1-example-graph', children=[
-            dcc.Tab(label='Map', children=[
+        dcc.Tabs(id="tabs-example-graph", value='Map', children=[
+            dcc.Tab(label='Map', value='Map', children=[
                 content_descr_row,
                 dcc.Graph(id='graph_4')
             ]),
             dcc.Tab(label='Just flights', children=[
+                html.Br(),
+                html.H5('Select the country of your choice using the dropdown menu. You can filter the displayed years in the graph by clicking on the specific year in the right legend.', style=TEXT_INFO_STYLE),
                 html.Div([
                     dcc.Dropdown(
                         id='country-dropdown',
@@ -164,7 +192,7 @@ content_first_row = dbc.Row([
                             {"label": row[0], "value": row[0]}
                             for index, row in country_df.iterrows()
                         ],
-                        multi=False
+                        value='Germany'
                     )
                 ],
                 style=FILTER_STYLE,),
@@ -173,8 +201,22 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_3', style = {'display':'none'})
             ]),
             dcc.Tab(label='Covid vs flights', children=[
-                #dcc.Graph(id='graph_3'),
-                dcc.Graph(id='graph_5')
+                html.Br(),
+                html.H5('Select the country of your choice using the dropdown menu. You can filter the displayed years in the graph by clicking on the specific year in the right legend.', style=TEXT_INFO_STYLE),
+                html.Div([
+                    dcc.Dropdown(
+                        id='country-dropdown-tab3',
+                        options=[
+                            {"label": row[0], "value": row[0]}
+                            for index, row in country_df.iterrows()
+                        ],
+                        value='Germany'
+                    )
+                ],
+                style=FILTER_STYLE,),
+                dcc.Graph(id='graph_5', style = {'display':'none'}),
+                dcc.Graph(id='graph_6', style = {'display':'none'}),
+                dcc.Graph(id='graph_7', style = {'display':'none'})
             ]),
             dcc.Tab(label='Predictions', children=[
                 #dcc.Graph(id='graph_3'),
@@ -331,43 +373,53 @@ def update_graph_4(dropdown_value):
                          hover_data = ['total_cases'],
                          projection = "mercator",
                          color_continuous_scale = px.colors.sequential.Plasma )
+
     fig.update_layout({
         'height': 600
     })
     return fig
 
-
 @app.callback(
     Output('graph_5', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
-     State('radio_items', 'value')
-     ])
-def update_graph_5(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
-    print(n_clicks)
-    print(dropdown_value)
-    print(range_slider_value)
-    print(check_list_value)
-    print(radio_items_value)  # Sample data and figure
-    df = px.data.iris()
-    fig = px.scatter(df, x='sepal_width', y='sepal_length')
+    [Input('country-dropdown-tab3', 'value')],)
+def update_graph_5(dropdown_value):      
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_che_2021.Day, y=df_che_2021.Flights*10000, name='Flights', mode='markers'))
+    fig.add_trace(go.Scatter(x=df_che_2021.Day, y=df_vacc_che.people_fully_vaccinated, name='Vaccinations',
+                        line = dict(color='red', width=2)))
+    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.update_layout(title='Switzerland',
+                   xaxis_title='Month',
+                   yaxis_title='Flights vs Vaccinations per day')
+    return fig
+
+@app.callback(
+    Output('graph_6', 'figure'),
+    [Input('country-dropdown-tab3', 'value')],)
+def update_graph_6(dropdown_value):      
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_ger_2021.Day, y=df_ger_2021.Flights*10000, name='Flights', mode='markers'))
+    fig.add_trace(go.Scatter(x=df_ger_2021.Day, y=df_vacc_ger.people_fully_vaccinated, name='Vaccinations',
+                        line = dict(color='red', width=2)))
+    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.update_layout(title='Germany',
+                   xaxis_title='Month',
+                   yaxis_title='Flights vs Vaccinations per day')
     return fig
 
 
 @app.callback(
-    Output('graph_6', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
-     State('radio_items', 'value')
-     ])
-def update_graph_6(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
-    print(n_clicks)
-    print(dropdown_value)
-    print(range_slider_value)
-    print(check_list_value)
-    print(radio_items_value)  # Sample data and figure
-    df = px.data.tips()
-    fig = px.bar(df, x='total_bill', y='day', orientation='h')
+    Output('graph_7', 'figure'),
+    [Input('country-dropdown-tab3', 'value')],)
+def update_graph_7(dropdown_value):  
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_isr_2021.Day, y=df_isr_2021.Flights*10000, name='Flights', mode='markers'))
+    fig.add_trace(go.Scatter(x=df_isr_2021.Day, y=df_vacc_isr.people_fully_vaccinated, name='Vaccinations',
+                        line = dict(color='red', width=2)))
+    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.update_layout(title='Israel',
+                   xaxis_title='Month',
+                   yaxis_title='Flights vs Vaccinations per day')
     return fig
 
 
@@ -378,11 +430,6 @@ def update_graph_6(n_clicks, dropdown_value, range_slider_value, check_list_valu
      State('radio_items', 'value')
      ])
 def update_card_title_1(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
-    print(n_clicks)
-    print(dropdown_value)
-    print(range_slider_value)
-    print(check_list_value)
-    print(radio_items_value)  # Sample data and figure
     return 'Card Tile 1 change by call back'
 
 
@@ -435,6 +482,46 @@ def update_chart_switzerland(country):
 )
 
 def update_chart_israel(country):
+    if country == "Israel":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
+
+
+# Callbacks for the dropdown on 3rd tab
+
+@app.callback(
+    Output("graph_5", "style"),
+    [Input("country-dropdown-tab3", "value")],
+)
+
+def update_chart_germany_tab3(country):
+    if country == "Switzerland":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
+
+@app.callback(
+    Output("graph_6", "style"),
+    [
+        Input("country-dropdown-tab3", "value")
+    ],
+)
+
+def update_chart_switzerland_tab3(country):
+    if country == "Germany":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
+
+@app.callback(
+    Output("graph_7", "style"),
+    [
+        Input("country-dropdown-tab3", "value")
+    ],
+)
+
+def update_chart_israel_tab3(country):
     if country == "Israel":
         return {'display':'block'}
     else :
