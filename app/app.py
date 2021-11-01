@@ -316,19 +316,21 @@ def update_graph_3(dropdown_value):
 
 @app.callback(
     Output('graph_4', 'figure'),
-    [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
-     State('radio_items', 'value')
-     ])
-def update_graph_4(n_clicks, dropdown_value, range_slider_value, check_list_value, radio_items_value):
-    print(n_clicks)
-    print(dropdown_value)
-    print(range_slider_value)
-    print(check_list_value)
-    print(radio_items_value)  # Sample data and figure
-    df = px.data.gapminder().query('year==2007')
-    fig = px.scatter_geo(df, locations='iso_alpha', color='continent',
-                         hover_name='country', size='pop', projection='natural earth')
+    [Input('country-dropdown', 'value')]
+    )
+def update_graph_4(dropdown_value):
+   
+    df = pd.DataFrame({
+    'iso_code': ['DEU', 'CHE','ISR'],
+    'continent': ['Europe','Europe','Asia'],
+    'location': ['Germany','Switzerland','Israel'],
+    'total_cases':['4305634','848418','1302777']
+})
+    fig = px.choropleth(df, locations='iso_code', color = 'location', 
+                         hover_name = 'location', 
+                         hover_data = ['total_cases'],
+                         projection = "mercator",
+                         color_continuous_scale = px.colors.sequential.Plasma )
     fig.update_layout({
         'height': 600
     })
