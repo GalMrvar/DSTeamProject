@@ -63,8 +63,11 @@ germany = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Germa
 israel = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" > 0 ORDER BY "Date" ASC """,db_conn)
 switzerland = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" > 0 ORDER BY "Date" ASC """,db_conn)
 
-#israel.iloc[-1]["Cases"]
-#switzerland.iloc[-1]["Cases"]
+#Total cases Data frames for api data
+total_cases_germany = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Germany' ORDER BY "Date" DESC """,db_conn)
+total_cases_israel = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Israel' ORDER BY "Date" DESC """,db_conn)
+total_cases_switzerland = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Switzerland' ORDER BY "Date" DESC """,db_conn)
+
 # the style arguments for the sidebar.
 SIDEBAR_STYLE = {
     'position': 'fixed',
@@ -93,11 +96,6 @@ TEXT_INFO_STYLE = {
     'color': '#191970'
 }
 
-CARD_TEXT_STYLE = {
-    'textAlign': 'center',
-    'color': '#0074D9'
-}
-
 FILTER_STYLE = {
     'textAlign': 'Left',
     'color': '#0074D9',
@@ -108,81 +106,43 @@ FILTER_STYLE = {
     'padding': '20px 10p'
 }
 
-
-#BETÜL COMMENTS:
-    #Had to change here 'FormGroup' to 'CardGroup' for the template to run
-controls = dbc.CardGroup(
-    [
-    ]
-)
-
+# composition of sidebar's live data
 sidebar = html.Div(
     [
         html.H2('Live Data', style=TEXT_STYLE),
         html.Hr(),
         html.H3('Germany', style=TEXT_STYLE),
-        html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(germany.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = germany.iloc[-1]["Cases"]), style=TEXT_STYLE),
         html.Hr(),
         html.H3('Switzerland', style=TEXT_STYLE),
-        html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(switzerland.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = switzerland.iloc[-1]["Cases"]), style=TEXT_STYLE),
         html.Hr(),
         html.H3('Israel', style=TEXT_STYLE),
-        html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": " + str(israel.iloc[-1]["Cases"]), style=TEXT_STYLE),
-        html.Hr(),
-        controls
+        html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = israel.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.Hr()
     ],
     style=SIDEBAR_STYLE,
 )
-'''
-content_intro_row = dbc.Row(
-    dbc.Col(
-        dbc.Card([
-            dbc.CardBody(
-                [
-                    html.H4(id='card_title_intro', children=['Click on the tab for the content. Thanks!'], className='card-title-intro',
-                            style=CARD_TEXT_STYLE),
-                    html.P(id='card_text_intro', children=['We need to decide if we want to have a homepage thingy or if we want to show the first tab on page load. WHAT COMES HERE???'], style=CARD_TEXT_STYLE),
-                ]
-            )
-        ])
-    )
-)'''
-content_descr_row = dbc.Row([
-    dbc.Col(
-        dbc.Card([
-            dbc.CardBody(
-                [
-                    html.H4(id='card_title_1', children=['Card Title 1'], className='card-title',
-                            style=CARD_TEXT_STYLE),
-                    html.P(id='card_text_1', children=['Sample text.'], style=CARD_TEXT_STYLE),
-                ]
-            )
-        ]),
-        md=6
-    ),
-    dbc.Col(
-        dbc.Card([
-            dbc.CardBody(
-                [
-                    html.H4('Card Title 2', className='card-title', style=CARD_TEXT_STYLE),
-                    html.P('Sample text.', style=CARD_TEXT_STYLE),
-                ]
-            ),
-        ]),
-        md=6
-    ),
-])
 
-country_df = pd.read_sql_query('SELECT distinct "Entity" FROM aviation',db_conn)
+country_df = pd.read_sql_query('SELECT distinct "Entity" FROM aviation',db_conn) # create list of countrie for the dropdown menu
 
 content_first_row = dbc.Row([
     dbc.Col(
         dcc.Tabs(id="tabs-example-graph", value='Map', children=[
             dcc.Tab(label='Map', value='Map', children=[
-                content_descr_row,
-                dcc.Graph(id='graph_4')
+                dcc.Graph(id='graph_4'),
+                html.Br(),
+                html.H3('Germany', style=TEXT_INFO_STYLE),
+                html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
+                html.Br(),
+                html.H3('Switzerland', style=TEXT_INFO_STYLE),
+                html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
+                html.Br(),
+                html.H3('Israel', style=TEXT_INFO_STYLE),
+                html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
+                html.Br()
             ]),
-            dcc.Tab(label='Just flights', children=[
+            dcc.Tab(label='Flights comparison', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu. You can filter the displayed years in the graph by clicking on the specific year in the right legend.', style=TEXT_INFO_STYLE),
                 html.Div([
@@ -219,55 +179,17 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_7', style = {'display':'none'})
             ]),
             dcc.Tab(label='Predictions', children=[
-                #dcc.Graph(id='graph_3'),
-                #dcc.Graph(id='graph_5')
+                #dcc.Graph(id='graph_3')
             ]),
         ])
     )
 ])
-
-content_second_row = dbc.Row(
-    [
-        dbc.Col(
-            dcc.Graph(id='graph_1'), md=4
-        ),
-        dbc.Col(
-            dcc.Graph(id='graph_2'), md=4
-        ),
-        dbc.Col(
-            dcc.Graph(id='graph_3'), md=4
-        )
-    ]
-)
-
-content_third_row = dbc.Row(
-    [
-        dbc.Col(
-            dcc.Graph(id='graph_4'), md=12,
-        )
-    ]
-)
-
-content_fourth_row = dbc.Row(
-    [
-        dbc.Col(
-            dcc.Graph(id='graph_5'), md=6
-        ),
-        dbc.Col(
-            dcc.Graph(id='graph_6'), md=6
-        )
-    ]
-)
 
 content = html.Div(
     [
         html.H2('Air Traffic and Covid Dashboard', style=TEXT_STYLE),
         html.Hr(),
         content_first_row,
-        #content_intro_row,
-        #content_second_row,
-        #content_third_row,
-        #content_fourth_row
     ],
     style=CONTENT_STYLE
 )
@@ -275,24 +197,7 @@ content = html.Div(
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = html.Div([sidebar, content])
 
-@app.callback(Output('tabs-content-example-graph', 'children'),
-              [Input('submit_button', 'n_clicks')],
-    [State('dropdown', 'value'), State('range_slider', 'value'), State('check_list', 'value'),
-     State('radio_items', 'value')
-     ])
-def render_content(tab):
-    if tab == 'tab-1-example-graph':
-        return html.Div(
-            content_third_row
-        )
-    elif tab == 'tab-2-example-graph':   
-        return html.Div(
-            content_fourth_row
-        )
-    elif tab == 'tab-3-example-graph':   
-        return html.Div(
-            content_second_row
-        )
+# callbacks section
 
 @app.callback(
     Output('graph_1', 'figure'),
@@ -362,21 +267,21 @@ def update_graph_3(dropdown_value):
     )
 def update_graph_4(dropdown_value):
    
-    df = pd.DataFrame({
+    df_map_cases = pd.DataFrame({
     'iso_code': ['DEU', 'CHE','ISR'],
-    'continent': ['Europe','Europe','Asia'],
-    'location': ['Germany','Switzerland','Israel'],
-    'total_cases':['4305634','848418','1302777']
-})
-    fig = px.choropleth(df, locations='iso_code', color = 'location', 
-                         hover_name = 'location', 
-                         hover_data = ['total_cases'],
-                         projection = "mercator",
-                         color_continuous_scale = px.colors.sequential.Plasma )
-
-    fig.update_layout({
-        'height': 600
+    'total_cases':['{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"])]
+    #'today_cases':['{cases:,}'.format(cases = germany.iloc[-1]["Cases"]),'{cases:,}'.format(cases = switzerland.iloc[-1]["Cases"]),'{cases:,}'.format(cases = israel.iloc[-1]["Cases"])]
     })
+
+    fig = px.choropleth(df_map_cases, 
+                        locations='iso_code', 
+                        color = 'iso_code', 
+                        hover_data = ['total_cases'],
+                        projection = "mercator",
+                        color_continuous_scale = px.colors.sequential.Plasma
+                        )
+    fig.update_geos(fitbounds="locations", visible=True)
+    fig.update_layout(margin={"r":0,"t":50,"l":0,"b":0})
     return fig
 
 @app.callback(
@@ -530,3 +435,5 @@ def update_chart_israel_tab3(country):
 
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0")
+
+

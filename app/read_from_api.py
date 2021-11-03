@@ -33,12 +33,20 @@ def readFromJsonToPdCountry(response):
     
     #dropping na values and return (na is always going to be the first value in list) that's why we specify datetime - 2
     return aggregated_pd.dropna()
+
+def readFromJsonToPdCountryTotalCases(response):
+    pd_response = pd.read_json(json.dumps(response.json()), convert_dates=['Date'])
+    pd_modified = pd_response[["Country", "CountryCode", "Confirmed", "Deaths", "Recovered", "Date"]] #active & recovered as well?
+        
+    #dropping na values and return (na is always going to be the first value in list) that's why we specify datetime - 2
+    return pd_modified.dropna()
     
 def processDataFromApi(dateFrom, newTable):
     if(dateFrom is not None):
         dateFrom = dateFrom - timedelta(2)
     else:
         dateFrom = datetime.today() - timedelta(2)
+    
     #edit dateTime var
     dateFrom = datetime.combine(dateFrom, time(0, 0, 0, 0)).strftime("%Y-%m-%dT%H:%M:%SZ")
     today = datetime.combine(datetime.today(), time(0, 0, 0, 0)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -51,7 +59,7 @@ def processDataFromApi(dateFrom, newTable):
     israel_api = callApi("https://api.covid19api.com/country/israel/status/confirmed?from="+dateFrom+"&to="+today)
     pd_israel = readFromJsonToPdCountry(israel_api)
     
-    ##group them all together:
+    ##group daily cases DataFrames all together:
     pd_all_countries = pd_germany.append(pd_switzerland)
     pd_all_countries = pd_all_countries.append(pd_israel)
     
@@ -78,3 +86,38 @@ else:
     #new table add 
     dateFrom = datetime(2020, 1, 1)
     processDataFromApi(dateFrom, True)
+
+def processTotalCasesFromApi(newTable):
+    
+    germany_api_total_cases = callApi("https://api.covid19api.com/live/country/germany/status/confirmed")
+    pd_germany_total_cases = readFromJsonToPdCountryTotalCases(germany_api_total_cases)
+    
+    switzerland_api_total_cases = callApi("https://api.covid19api.com/live/country/switzerland/status/confirmed")
+    pd_switzerland_total_cases = readFromJsonToPdCountryTotalCases(switzerland_api_total_cases)
+    
+    israel_api_total_cases = callApi("https://api.covid19api.com/live/country/israel/status/confirmed")
+    pd_israel_total_cases = readFromJsonToPdCountryTotalCases(israel_api_total_cases)
+    
+    ##group total cases DataFrames all together:
+    pd_all_countries_total_cases = pd_germany_total_cases.append(pd_switzerland_total_cases)
+    pd_all_countries_total_cases = pd_all_countries_total_cases.append(pd_israel_total_cases)
+    
+    if(newTable):
+        pd_all_countries_total_cases.to_sql('totalCases', db_conn, if_exists='replace')
+    else:
+        #create temp table
+        pd_all_countries_total_cases.to_sql('tmp_totalCases', db_conn, if_exists='replace')
+        #remove all values that match the temp table (from the original table)
+        sql = """
+                delete from "totalCases" t1 where "Date" in (select "Date" from "tmp_totalCases" t2 WHERE t1."Country" = t2."Country")
+            """
+        db_conn.execute(sql)
+        #then append cases to the original table
+        pd_all_countries_total_cases.to_sql('totalCases', db_conn, if_exists='append')
+
+if(inspect(db_conn).has_table("totalCases")):
+    #old table add update and append missing values
+    processTotalCasesFromApi(False)
+else:
+    #new table add 
+    processTotalCasesFromApi(True)
