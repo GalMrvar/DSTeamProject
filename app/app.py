@@ -15,6 +15,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
+from sklearn import preprocessing
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__)
@@ -31,6 +32,7 @@ df_2["Day 2019"]= pd.to_datetime(df_2["Day 2019"])
 df_1.rename(columns={'Entity':'Country'}, inplace=True)
 df_2.rename(columns={'Entity':'Country', 'Day 2019': 'Day', 'Flights 2019 (Reference)': 'Flights'}, inplace=True)
 
+#data frames for each year and country of aviation data
 df_1 = df_1.append(df_2)
 df_1 = df_1.sort_values(by=['Day'])
 df_1['Year'] = df_1['Day'].dt.year
@@ -57,6 +59,12 @@ df_vacc = pd.read_sql_query('SELECT * FROM vaccinations',db_conn)
 df_vacc_ger = df_vacc[df_vacc['location']=='Germany']
 df_vacc_che = df_vacc[df_vacc['location']=='Switzerland']
 df_vacc_isr = df_vacc[df_vacc['location']=='Israel']
+
+#Merged data frames flights and vaccinations on date and countries
+dfinal = testdf2.merge(df_vacc, how='inner', left_on=['Day','Entity'], right_on=['date','location'])
+dfinal_ger = dfinal[dfinal['Entity']=='Germany']
+dfinal_che = dfinal[dfinal['Entity']=='Switzerland']
+dfinal_isr = dfinal[dfinal['Entity']=='Israel']
 
 #Data frames for api data
 germany = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Germany' AND "Cases" > 0 ORDER BY "Date" ASC """,db_conn)
@@ -321,15 +329,16 @@ def update_graph_4(dropdown_value):
 @app.callback(
     Output('graph_5', 'figure'),
     [Input('country-dropdown-tab3', 'value')],)
-def update_graph_5(dropdown_value):      
+def update_graph_5(dropdown_value):   
+    #normalized_che_flights = preprocessing.normalize(df_che_2021.Flights)
+    #normalized_che_vacc = preprocessing.normalize(df_vacc_che.people_fully_vaccinated)
+    #fig = px.scatter(dfinal, x=dfinal.people_fully_vaccinated_in_percentage, y=dfinal.Flights, color='Entity',title='Sample')
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df_che_2021.Day, y=df_che_2021.Flights*10000, name='Flights', mode='markers'))
-    fig.add_trace(go.Scatter(x=df_che_2021.Day, y=df_vacc_che.people_fully_vaccinated, name='Vaccinations',
-                        line = dict(color='red', width=2)))
-    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.add_trace(go.Scatter(x=dfinal_che.people_fully_vaccinated_in_percentage*100, y=dfinal_che.Flights, name='Flights', mode='markers', marker_color='blue'))
+    #fig.update_yaxes(type="log")
     fig.update_layout(title='Switzerland',
-                   xaxis_title='Month',
-                   yaxis_title='Flights vs Vaccinations per day')
+                   xaxis_title='Vaccination rate in %',
+                   yaxis_title='Flights per day')
     return fig
 
 @app.callback(
@@ -337,13 +346,14 @@ def update_graph_5(dropdown_value):
     [Input('country-dropdown-tab3', 'value')],)
 def update_graph_6(dropdown_value):      
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df_ger_2021.Day, y=df_ger_2021.Flights*10000, name='Flights', mode='markers'))
-    fig.add_trace(go.Scatter(x=df_ger_2021.Day, y=df_vacc_ger.people_fully_vaccinated, name='Vaccinations',
-                        line = dict(color='red', width=2)))
-    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.add_trace(go.Scatter(x=dfinal_ger.people_fully_vaccinated_in_percentage*100, y=dfinal_ger.Flights, name='Flights', mode='markers', marker_color='red'))
+    #fig.add_trace(go.Scatter(x=df_ger_2021.Day, y=df_ger_2021.Flights*10000, name='Flights', mode='markers'))
+    #fig.add_trace(go.Scatter(x=df_ger_2021.Day, y=df_vacc_ger.people_fully_vaccinated, name='Vaccinations',
+                        #line = dict(color='red', width=2)))
+    #fig.update_yaxes(type="log")
     fig.update_layout(title='Germany',
-                   xaxis_title='Month',
-                   yaxis_title='Flights vs Vaccinations per day')
+                   xaxis_title='Vaccination rate in %',
+                   yaxis_title='Flights per day')
     return fig
 
 
@@ -352,13 +362,13 @@ def update_graph_6(dropdown_value):
     [Input('country-dropdown-tab3', 'value')],)
 def update_graph_7(dropdown_value):  
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df_isr_2021.Day, y=df_isr_2021.Flights*10000, name='Flights', mode='markers'))
-    fig.add_trace(go.Scatter(x=df_isr_2021.Day, y=df_vacc_isr.people_fully_vaccinated, name='Vaccinations',
-                        line = dict(color='red', width=2)))
-    fig.update_xaxes(dtick="M1", tickformat="%d %B")
+    fig.add_trace(go.Scatter(x=dfinal_isr.people_fully_vaccinated_in_percentage*100, y=dfinal_isr.Flights, name='Flights', mode='markers', marker_color='green'))
+    #fig.add_trace(go.Scatter(x=df_isr_2021.Day, y=df_isr_2021.Flights*10000, name='Flights', mode='markers'))
+    #fig.add_trace(go.Scatter(x=df_isr_2021.Day, y=df_vacc_isr.people_fully_vaccinated, name='Vaccinations',
+                        #line = dict(color='red', width=2)))
     fig.update_layout(title='Israel',
-                   xaxis_title='Month',
-                   yaxis_title='Flights vs Vaccinations per day')
+                   xaxis_title='Vaccination rate in %',
+                   yaxis_title='Flights per day')
     return fig
 
 
@@ -469,5 +479,3 @@ def update_chart_israel_tab3(country):
 
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0")
-
-
