@@ -6,3 +6,8 @@ requests
 dash_bootstrap_components
 dash_core_components
 dash_html_components
+numpy
+scipy
+joblib
+threadpoolctl
+scikit-learn
