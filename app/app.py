@@ -126,6 +126,34 @@ sidebar = html.Div(
 
 country_df = pd.read_sql_query('SELECT distinct "Entity" FROM aviation',db_conn) # create list of countrie for the dropdown menu
 
+# germany dataframe for the cases over time graph
+germanyCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Germany' AND "Cases" > '0'""",db_conn)
+germanyVaccinations = pd.read_sql_query('''SELECT iso_code, date ,people_fully_vaccinated_in_percentage FROM vaccinations WHERE iso_code = 'DEU' ''',db_conn)
+
+germany_plot_cases = go.Figure()
+germany_plot_cases.add_trace(go.Scatter(x=germanyCases.Date, y=germanyCases.Cases, name='germany_cases_over_time',line = dict(color='blue', width=2)))
+germany_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
+germany_plot_cases.update_layout(title='Covid cases in Germany',xaxis_title='Month',yaxis_title='Flights per day')
+
+# switzerland dataframe for the cases over time graph
+switzerlandCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" > '0'""",db_conn)
+switzerlandVaccinations = pd.read_sql_query('''SELECT iso_code, date ,people_fully_vaccinated_in_percentage FROM vaccinations WHERE iso_code = 'CHE' ''',db_conn)
+
+switzerland_plot_cases = go.Figure()
+switzerland_plot_cases.add_trace(go.Scatter(x=switzerlandCases.Date, y=switzerlandCases.Cases, name='switzerland_cases_over_time',line = dict(color='blue', width=2)))
+switzerland_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
+switzerland_plot_cases.update_layout(title='Covid cases in Switzerland',xaxis_title='Month',yaxis_title='Flights per day')
+
+# israel dataframe for the cases over time graph
+israelCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" > '0'""",db_conn)
+israelVaccinations = pd.read_sql_query('''SELECT iso_code, date ,people_fully_vaccinated_in_percentage FROM vaccinations WHERE iso_code = 'ISR' ''',db_conn)
+
+israel_plot_cases = go.Figure()
+israel_plot_cases.add_trace(go.Scatter(x=israelCases.Date, y=israelCases.Cases, name='israel_cases_over_time',line = dict(color='blue', width=2)))
+israel_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
+israel_plot_cases.update_layout(title='Covid cases in Israel',xaxis_title='Month',yaxis_title='Flights per day')
+
+
 content_first_row = dbc.Row([
     dbc.Col(
         dcc.Tabs(id="tabs-example-graph", value='Map', children=[
@@ -135,12 +163,15 @@ content_first_row = dbc.Row([
                 html.H3('Germany', style=TEXT_INFO_STYLE),
                 html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
                 html.Br(),
+                dcc.Graph(figure=germany_plot_cases,id='graph_germany_cases'),
                 html.H3('Switzerland', style=TEXT_INFO_STYLE),
                 html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
                 html.Br(),
+                dcc.Graph(figure=switzerland_plot_cases,id='graph_switzerland_cases'),
                 html.H3('Israel', style=TEXT_INFO_STYLE),
                 html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
-                html.Br()
+                html.Br(),
+                dcc.Graph(figure=israel_plot_cases,id='graph_israel_cases')
             ]),
             dcc.Tab(label='Flights comparison', children=[
                 html.Br(),
@@ -196,6 +227,9 @@ content = html.Div(
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = html.Div([sidebar, content])
+
+germanyCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Germany' AND "Cases" > '0'""",db_conn)
+germanyVaccinations = pd.read_sql_query('''SELECT iso_code, date ,people_fully_vaccinated_in_percentage FROM vaccinations WHERE iso_code = 'DEU' ''',db_conn)
 
 # callbacks section
 
