@@ -11,6 +11,7 @@ from dash import dash_table
 import read_vaccination_data
 import read_aviation_data
 import read_from_api
+import prediction
 import dash_bootstrap_components as dbc
 from dash import dcc
 from dash import html
@@ -76,6 +77,20 @@ switzerland = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'S
 total_cases_germany = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Germany' ORDER BY "Date" DESC """,db_conn)
 total_cases_israel = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Israel' ORDER BY "Date" DESC """,db_conn)
 total_cases_switzerland = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Switzerland' ORDER BY "Date" DESC """,db_conn)
+
+#Vacination data used for prediction
+germanyVaccinations = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+WHERE iso_code = 'DEU' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
+israelVaccinations = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+WHERE iso_code = 'ISR' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
+switzerlandVaccinations = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+WHERE iso_code = 'CHE' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
+
+#Flights data used for prediction
+germanyFlights = pd.read_sql_query("""SELECT "Day", "Flights" FROM "aviation" WHERE "Entity" = 'Germany' AND EXTRACT(YEAR from "Day")='2021' """,db_conn)
+israelFlights = pd.read_sql_query("""SELECT "Day", "Flights" FROM "aviation" WHERE "Entity" = 'Israel' AND EXTRACT(YEAR from "Day")='2021' """,db_conn)
+switzerlandFlights = pd.read_sql_query("""SELECT "Day", "Flights" FROM "aviation" WHERE "Entity" = 'Switzerland' AND EXTRACT(YEAR from "Day")='2021' """,db_conn)
+
 
 # the style arguments for the sidebar.
 SIDEBAR_STYLE = {
@@ -270,7 +285,22 @@ content_first_row = dbc.Row([
             ]),
             # code for TAB 5
             dcc.Tab(label='Predictions', children=[
-                #dcc.Graph(id='graph_3')
+                html.Br(),
+                html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
+                html.Div([
+                    dcc.Dropdown(
+                        id='country-dropdown-tab4',
+                        options=[
+                            {"label": row[0], "value": row[0]}
+                            for index, row in country_df.iterrows()
+                        ],
+                        value='Germany'
+                    )
+                ],
+                style=FILTER_STYLE,),
+                dcc.Graph(id='graph_pred_flights_ger', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_flights_sw', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_flights_isr', style = {'display':'none'}),
             ]),
         ])
     )
@@ -451,6 +481,33 @@ def update_graph_7(dropdown_value):
                    yaxis_title='Flights per day')
     return fig
 
+@app.callback(
+    Output('graph_pred_flights_ger', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictFlights(germanyFlights, 31)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='orange', width=2)))
+    return fig
+
+@app.callback(
+    Output('graph_pred_flights_sw', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictFlights(switzerlandFlights, 31)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='orange', width=2)))
+    return fig
+
+@app.callback(
+    Output('graph_pred_flights_isr', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictFlights(israelFlights, 31)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='orange', width=2)))
+    return fig
+
 #Callbacks that display a graph depending on the country selected in the dropdown
 
 @app.callback(
@@ -537,6 +594,45 @@ def update_chart_israel_tab3(country):
     else :
         return {'display':'none'}, {'display':'none'}, {'display':'none'}
 
+#Callbacks for tab 4
+
+@app.callback(
+    Output("graph_pred_flights_sw", "style"),
+    [Input("country-dropdown-tab4", "value")],
+)
+
+def update_chart_switzerland_tab4(country):
+    if country == "Switzerland":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
+
+@app.callback(
+    Output("graph_pred_flights_ger", "style"), 
+    [
+        Input("country-dropdown-tab4", "value")
+    ],
+)
+
+def update_chart_germany_tab4(country):
+    if country == "Germany":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
+
+
+@app.callback(
+    Output("graph_pred_flights_isr", "style"),
+    [
+        Input("country-dropdown-tab4", "value")
+    ],
+)
+
+def update_chart_israel_tab4(country):
+    if country == "Israel":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
 
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0")
