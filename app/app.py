@@ -78,11 +78,11 @@ total_cases_israel = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Coun
 total_cases_switzerland = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Switzerland' ORDER BY "Date" DESC """,db_conn)
 
 #Vacination data used for prediction
-germanyVaccinations = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+germanyVaccinationsPred = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
 WHERE iso_code = 'DEU' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
-israelVaccinations = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+israelVaccinationsPred = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
 WHERE iso_code = 'ISR' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
-switzerlandVaccinations = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+switzerlandVaccinationsPred = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
 WHERE iso_code = 'CHE' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
 
 #Flights data used for prediction
@@ -247,8 +247,11 @@ content_first_row = dbc.Row([
                 ],
                 style=FILTER_STYLE,),
                 dcc.Graph(id='graph_pred_flights_ger', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_vaccinations_ger', style = {'display':'none'}),
                 dcc.Graph(id='graph_pred_flights_sw', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_vaccinations_sw', style = {'display':'none'}),
                 dcc.Graph(id='graph_pred_flights_isr', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_vaccinations_isr', style = {'display':'none'}),
             ]),
         ])
     )
@@ -435,6 +438,8 @@ def update_graph_7(dropdown_value):
                    yaxis_title='Flights per day')
     return fig
 
+#prediction
+#flights
 @app.callback(
     Output('graph_pred_flights_ger', 'figure'),
      [Input('country-dropdown-tab4', 'value')],)
@@ -460,6 +465,34 @@ def update_graph_pred_flights(dropdown_value):
     fig = go.Figure()
     xVal,yVal = prediction.predictFlights(israelFlights, 31)
     fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='orange', width=2)))
+    return fig
+
+#vaccinations
+@app.callback(
+    Output('graph_pred_vaccinations_ger', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictVaccinations(germanyVaccinationsPred, 31, 30)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='orange', width=2)))
+    return fig
+
+@app.callback(
+    Output('graph_pred_vaccinations_sw', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictVaccinations(switzerlandVaccinationsPred, 31, 30)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='orange', width=2)))
+    return fig
+
+@app.callback(
+    Output('graph_pred_vaccinations_isr', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictVaccinations(israelVaccinationsPred, 31, 100)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='orange', width=2)))
     return fig
 
 #Callbacks that display a graph depending on the country selected in the dropdown
@@ -547,19 +580,23 @@ def update_chart_israel_tab3(country):
 
 #Callbacks for tab 4
 
-@app.callback(
+@app.callback([
     Output("graph_pred_flights_sw", "style"),
-    [Input("country-dropdown-tab4", "value")],
+    Output("graph_pred_vaccinations_sw", "style")],
+    [
+        Input("country-dropdown-tab4", "value")
+    ],
 )
 
 def update_chart_switzerland_tab4(country):
     if country == "Switzerland":
-        return {'display':'block'}
+        return {'display':'block'}, {'display':'block'}
     else :
-        return {'display':'none'}
+        return {'display':'none'}, {'display':'none'}
 
-@app.callback(
-    Output("graph_pred_flights_ger", "style"), 
+@app.callback([
+    Output("graph_pred_flights_ger", "style"),
+    Output("graph_pred_vaccinations_ger", "style")], 
     [
         Input("country-dropdown-tab4", "value")
     ],
@@ -567,13 +604,14 @@ def update_chart_switzerland_tab4(country):
 
 def update_chart_germany_tab4(country):
     if country == "Germany":
-        return {'display':'block'}
+        return {'display':'block'}, {'display':'block'}
     else :
-        return {'display':'none'}
+        return {'display':'none'}, {'display':'none'}
 
 
-@app.callback(
+@app.callback([
     Output("graph_pred_flights_isr", "style"),
+    Output("graph_pred_vaccinations_isr", "style")], 
     [
         Input("country-dropdown-tab4", "value")
     ],
@@ -581,9 +619,9 @@ def update_chart_germany_tab4(country):
 
 def update_chart_israel_tab4(country):
     if country == "Israel":
-        return {'display':'block'}
+        return {'display':'block'}, {'display':'block'}
     else :
-        return {'display':'none'}
+        return {'display':'none'}, {'display':'none'}
 
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0")
