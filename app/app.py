@@ -217,7 +217,7 @@ germanyCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE
 germany_plot_cases = go.Figure()
 germany_plot_cases.add_trace(go.Scatter(x=germanyCases.Date, y=germanyCases.Cases, name='germany_cases_over_time',line = dict(color='blue', width=2)))
 germany_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
-germany_plot_cases.update_layout(title='Covid cases in Germany',xaxis_title='Month',yaxis_title='Flights per day')
+germany_plot_cases.update_layout(title='Covid cases in Germany',xaxis_title='Month',yaxis_title='Cases per day')
 
 # switzerland dataframe for the cases over time graph
 switzerlandCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" > '0'""",db_conn)
@@ -225,7 +225,7 @@ switzerlandCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" W
 switzerland_plot_cases = go.Figure()
 switzerland_plot_cases.add_trace(go.Scatter(x=switzerlandCases.Date, y=switzerlandCases.Cases, name='switzerland_cases_over_time',line = dict(color='blue', width=2)))
 switzerland_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
-switzerland_plot_cases.update_layout(title='Covid cases in Switzerland',xaxis_title='Month',yaxis_title='Flights per day')
+switzerland_plot_cases.update_layout(title='Covid cases in Switzerland',xaxis_title='Month',yaxis_title='Cases per day')
 
 # israel dataframe for the cases over time graph
 israelCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" > '0'""",db_conn)
@@ -233,7 +233,7 @@ israelCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE 
 israel_plot_cases = go.Figure()
 israel_plot_cases.add_trace(go.Scatter(x=israelCases.Date, y=israelCases.Cases, name='israel_cases_over_time',line = dict(color='blue', width=2)))
 israel_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
-israel_plot_cases.update_layout(title='Covid cases in Israel',xaxis_title='Month',yaxis_title='Flights per day')
+israel_plot_cases.update_layout(title='Covid cases in Israel',xaxis_title='Month',yaxis_title='Cases per day')
 
 #Convert Date of total_cases data to datetime[ns] for merging data frames
 total_cases_germany_converted = pd.read_sql_query("""SELECT "Date", "Cases", "Country"  FROM "apiCases" WHERE "Country" = 'Germany' AND "Cases" > '0'""",db_conn)
