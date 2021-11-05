@@ -223,7 +223,7 @@ germany_plot_cases.update_layout(title='Covid cases in Germany',xaxis_title='Mon
 switzerlandCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" > '0'""",db_conn)
 
 switzerland_plot_cases = go.Figure()
-switzerland_plot_cases.add_trace(go.Scatter(x=switzerlandCases.Date, y=switzerlandCases.Cases, name='switzerland_cases_over_time',line = dict(color='blue', width=2)))
+switzerland_plot_cases.add_trace(go.Scatter(x=switzerlandCases.Date, y=switzerlandCases.Cases, name='switzerland_cases_over_time',line = dict(color='red', width=2)))
 switzerland_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
 switzerland_plot_cases.update_layout(title='Covid cases in Switzerland',xaxis_title='Month',yaxis_title='Cases per day')
 
@@ -231,7 +231,7 @@ switzerland_plot_cases.update_layout(title='Covid cases in Switzerland',xaxis_ti
 israelCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" > '0'""",db_conn)
 
 israel_plot_cases = go.Figure()
-israel_plot_cases.add_trace(go.Scatter(x=israelCases.Date, y=israelCases.Cases, name='israel_cases_over_time',line = dict(color='blue', width=2)))
+israel_plot_cases.add_trace(go.Scatter(x=israelCases.Date, y=israelCases.Cases, name='israel_cases_over_time',line = dict(color='green', width=2)))
 israel_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
 israel_plot_cases.update_layout(title='Covid cases in Israel',xaxis_title='Month',yaxis_title='Cases per day')
 
@@ -288,6 +288,9 @@ content_first_row = dbc.Row([
             dcc.Tab(label='Covid vs Flights', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
+                html.H6('The first graph shows the correlation between the daily flights numbers and vaccination rate of each country.' , style=TEXT_INFO_STYLE),
+                html.H6('If you hover over the points, you can see the flights and the vaccination rate on a specific date.' , style=TEXT_INFO_STYLE),
+                html.Br(),
                 html.Div([
                     dcc.Dropdown(
                         id='country-dropdown-tab3',
@@ -314,6 +317,9 @@ content_first_row = dbc.Row([
             dcc.Tab(label='Cases and Vaccines', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
+                html.H6('The graph shows the correlation between the daily cases and vaccination rate of each country.' , style=TEXT_INFO_STYLE),
+                html.H6('If you hover over the line, you can see the daily case numbers and the vaccination rate on a specific date.' , style=TEXT_INFO_STYLE),
+                html.Br(),
                 html.Div([
                     dcc.Dropdown(
                         id='country-dropdown-tab5',
