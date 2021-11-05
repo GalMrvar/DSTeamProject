@@ -114,9 +114,18 @@ TEXT_STYLE = {
     #'color': '#191970'
 }
 
+LABEL_STYLE_INCREASE_CASES = {
+    'textAlign': 'left'
+    }
+
 TEXT_STYLE_INCREASE_CASES = {
     'textAlign': 'left',
-    #'color': '#191970'
+    'color': '#82b74b'
+}
+
+TEXT_STYLE_DECREASE_CASES = {
+    'textAlign': 'left',
+    'color': '#c94c4c'
 }
 
 TEXT_INFO_STYLE = {
@@ -145,6 +154,7 @@ DIV_IMG_STYLE = {
 }
 
 
+
 # load different content if the cases increase or decrease
 
 germany_cases_increase = germany.iloc[-1]["Cases"] - germany.iloc[-2]["Cases"]
@@ -154,38 +164,46 @@ israel_cases_increase = israel.iloc[-1]["Cases"] - israel.iloc[-2]["Cases"]
 
 def load_growth_cases_germany():
     if germany_cases_increase >= 0 :
-        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = germany_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'germany_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = germany_cases_increase), style=TEXT_STYLE_INCREASE_CASES)], style=DIV_IMG_STYLE),
     else :
-        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = germany_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'germany_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = germany_cases_increase), style=TEXT_STYLE_DECREASE_CASES)], style=DIV_IMG_STYLE),
 
 def load_growth_cases_switzerland():
     if switzerland_cases_increase >= 0 :
-        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'switzerland_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE_INCREASE_CASES)], style=DIV_IMG_STYLE),
     else :
-        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'switzerland_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE_DECREASE_CASES)], style=DIV_IMG_STYLE),
 
 def load_growth_cases_israel():
     if israel_cases_increase >= 0 :
-        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = israel_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'israel_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = israel_cases_increase), style=TEXT_STYLE_INCREASE_CASES)], style=DIV_IMG_STYLE),
     else :
-        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = israel_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'israel_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = israel_cases_increase), style=TEXT_STYLE_DECREASE_CASES)], style=DIV_IMG_STYLE),
 
 # composition of sidebar's live data
 sidebar = html.Div(
     [
+        html.Br(),
         html.H2('Live Data', style=TEXT_STYLE),
+        html.Br(),
         html.Hr(),
+        html.Br(),
         html.H3('Germany', style=TEXT_STYLE),
-        html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = germany.iloc[-1]["Cases"]), style=TEXT_STYLE_INCREASE_CASES),
+        html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = germany.iloc[-1]["Cases"]), style=LABEL_STYLE_INCREASE_CASES),
         html.Div(children=load_growth_cases_germany(), id='germany_cases_increase'),
+        html.Br(),
         html.Hr(),
+        html.Br(),
         html.H3('Switzerland', style=TEXT_STYLE),
-        html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = switzerland.iloc[-1]["Cases"]), style=TEXT_STYLE_INCREASE_CASES),
+        html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = switzerland.iloc[-1]["Cases"]), style=LABEL_STYLE_INCREASE_CASES),
         html.Div(children=load_growth_cases_switzerland(), id='switzerland_cases_increase'),
+        html.Br(),
         html.Hr(),
+        html.Br(),
         html.H3('Israel', style=TEXT_STYLE),
-        html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = israel.iloc[-1]["Cases"]), style=TEXT_STYLE_INCREASE_CASES),
+        html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = israel.iloc[-1]["Cases"]), style=LABEL_STYLE_INCREASE_CASES),
         html.Div(children=load_growth_cases_israel(), id='israel_cases_increase'),
+        html.Br(),
         html.Hr()
     ],
     style=SIDEBAR_STYLE,
@@ -340,7 +358,9 @@ content_first_row = dbc.Row([
 # building of the right main part of the dashboard
 content = html.Div(
     [
+        html.Br(),
         html.H2('Air Traffic and Covid Dashboard', style=TEXT_STYLE),
+        html.Br(),
         html.Hr(),
         content_first_row,
     ],
@@ -502,7 +522,7 @@ def update_graph_5(dropdown_value):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=dfinal_che.people_fully_vaccinated_in_percentage*100, y=dfinal_che.Flights, name='Flights', mode='markers', marker_color='red', text=dfinal['Day'], hovertemplate =
     '<br>Flights: %{y}<br>'+
-    '% Vaccination Rate: %{x:%.2f}<br>'+
+    '% Vaccination Rate: %{x:.2f}%<br>'+
     'Date: %{text}',))
     fig.update_layout(title='Switzerland',
                    xaxis_title='Vaccination rate in %',
@@ -516,7 +536,7 @@ def update_graph_6(dropdown_value):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=dfinal_ger.people_fully_vaccinated_in_percentage*100, y=dfinal_ger.Flights, name='Flights', mode='markers', marker_color='blue', text=dfinal['Day'], hovertemplate =
     '<br>Flights: %{y}<br>'+
-    '% Vaccination Rate: %{x:%.2f}<br>'+
+    '% Vaccination Rate: %{x:.2f}%<br>'+
     'Date: %{text}',))
     fig.update_layout(title='Germany',
                    xaxis_title='Vaccination rate in %',
@@ -531,7 +551,7 @@ def update_graph_7(dropdown_value):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=dfinal_isr.people_fully_vaccinated_in_percentage*100, y=dfinal_isr.Flights, name='Flights', mode='markers', marker_color='green', text=dfinal['Day'], hovertemplate =
     '<br>Flights: %{y}<br>'+
-    '% Vaccination Rate: %{x:%.2f}<br>'+
+    '% Vaccination Rate: %{x:.2f}%<br>'+
     'Date: %{text}',))
     fig.update_layout(title='Israel',
                    xaxis_title='Vaccination rate in %',
@@ -546,7 +566,7 @@ def update_graph_cases_vacc_ger(dropdown_value):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=cases_vacc_ger.people_fully_vaccinated_in_percentage*100, y=cases_vacc_ger.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='blue', text=cases_vacc_ger['date'], hovertemplate =
     '<br>Cases: %{y}<br>'+
-    '% Vaccination Rate: %{x:%.2f}<br>'+
+    'Vaccination Rate: %{x:.2f}%<br>'+
     'Date: %{text}',))
     fig.update_layout(title='Germany',
                    xaxis_title='Vaccination rate in %',
@@ -560,7 +580,7 @@ def update_graph_cases_vacc_che(dropdown_value):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=cases_vacc_che.people_fully_vaccinated_in_percentage*100, y=cases_vacc_che.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='red', text=cases_vacc_ger['date'], hovertemplate =
     '<br>Cases: %{y}<br>'+
-    '% Vaccination Rate: %{x:%.2f}<br>'+
+    '% Vaccination Rate: %{x:.2f}%<br>'+
     'Date: %{text}',))
     fig.update_layout(title='Switzerland',
                    xaxis_title='Vaccination rate in %',
@@ -575,7 +595,7 @@ def update_graph_cases_vacc_isr(dropdown_value):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=cases_vacc_isr.people_fully_vaccinated_in_percentage*100, y=cases_vacc_isr.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='green', text=cases_vacc_ger['date'], hovertemplate =
     '<br>Cases: %{y}<br>'+
-    '% Vaccination Rate: %{x:%.2f}<br>'+
+    '% Vaccination Rate: %{x:.2f}%<br>'+
     'Date: %{text}',))
     fig.update_layout(title='Israel',
                    xaxis_title='Vaccination rate in %',
