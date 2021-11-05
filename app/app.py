@@ -11,6 +11,7 @@ from dash import dash_table
 import read_vaccination_data
 import read_aviation_data
 import read_from_api
+import prediction
 import dash_bootstrap_components as dbc
 from dash import dcc
 from dash import html
@@ -19,6 +20,7 @@ from sklearn import preprocessing
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__)
+app.title = 'AirCovid'
 
 db_conn = create_engine("postgresql://username:secret@db:5432/database")
 
@@ -76,6 +78,20 @@ total_cases_germany = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Cou
 total_cases_israel = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Israel' ORDER BY "Date" DESC """,db_conn)
 total_cases_switzerland = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Switzerland' ORDER BY "Date" DESC """,db_conn)
 
+#Vacination data used for prediction
+germanyVaccinationsPred = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+WHERE iso_code = 'DEU' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
+israelVaccinationsPred = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+WHERE iso_code = 'ISR' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
+switzerlandVaccinationsPred = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
+WHERE iso_code = 'CHE' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
+
+#Flights data used for prediction
+germanyFlights = pd.read_sql_query("""SELECT "Day", "Flights" FROM "aviation" WHERE "Entity" = 'Germany' AND EXTRACT(YEAR from "Day")='2021' """,db_conn)
+israelFlights = pd.read_sql_query("""SELECT "Day", "Flights" FROM "aviation" WHERE "Entity" = 'Israel' AND EXTRACT(YEAR from "Day")='2021' """,db_conn)
+switzerlandFlights = pd.read_sql_query("""SELECT "Day", "Flights" FROM "aviation" WHERE "Entity" = 'Switzerland' AND EXTRACT(YEAR from "Day")='2021' """,db_conn)
+
+
 # the style arguments for the sidebar.
 SIDEBAR_STYLE = {
     'position': 'fixed',
@@ -96,23 +112,59 @@ CONTENT_STYLE = {
 
 TEXT_STYLE = {
     'textAlign': 'center',
-    'color': '#191970'
+    #'color': '#191970'
 }
 
 TEXT_INFO_STYLE = {
     'textAlign': 'lefrt',
-    'color': '#191970'
+    #'color': '#191970'
+}
+
+TEXT_INFO_STYLE_VACCINATIONS = {
+    'textAlign': 'center',
+    #'color': '#191970',
+    'display': 'none'
 }
 
 FILTER_STYLE = {
     'textAlign': 'Left',
-    'color': '#0074D9',
-    'margin-left': '5%',
+    #'color': '#0074D9',
     'margin-right': '65%',
     'margin-top': '5%',
     'margin-bottom': '2%',
     'padding': '20px 10p'
 }
+
+DIV_IMG_STYLE = {
+    'display': 'inline-block',
+    'width': '100%'
+}
+
+
+# load different content if the cases increase or decrease
+
+germany_cases_increase = germany.iloc[-1]["Cases"] - germany.iloc[-2]["Cases"]
+switzerland_cases_increase = switzerland.iloc[-1]["Cases"] - switzerland.iloc[-2]["Cases"]
+israel_cases_increase = israel.iloc[-1]["Cases"] - israel.iloc[-2]["Cases"]
+
+
+def load_growth_cases_germany():
+    if germany_cases_increase >= 0 :
+        return html.Div([html.Img(id = 'germany_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Increased by: {cases:,}'.format(cases = germany_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+    else :
+        return html.Div([html.Img(id = 'germany_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Decreased by: {cases:,}'.format(cases = germany_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+
+def load_growth_cases_switzerland():
+    if switzerland_cases_increase >= 0 :
+        return html.Div([html.Img(id = 'switzerland_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Increased by: {cases:,}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+    else :
+        return html.Div([html.Img(id = 'switzerland_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Decreased by: {cases:,}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+
+def load_growth_cases_israel():
+    if israel_cases_increase >= 0 :
+        return html.Div([html.Img(id = 'israel_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Increased by: {cases:,}'.format(cases = israel_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+    else :
+        return html.Div([html.Img(id = 'israel_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Decreased by: {cases:,}'.format(cases = israel_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
 
 # composition of sidebar's live data
 sidebar = html.Div(
@@ -121,12 +173,15 @@ sidebar = html.Div(
         html.Hr(),
         html.H3('Germany', style=TEXT_STYLE),
         html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = germany.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.Div(children=load_growth_cases_germany(), id='germany_cases_increase'),
         html.Hr(),
         html.H3('Switzerland', style=TEXT_STYLE),
         html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = switzerland.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.Div(children=load_growth_cases_switzerland(), id='switzerland_cases_increase'),
         html.Hr(),
         html.H3('Israel', style=TEXT_STYLE),
         html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = israel.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.Div(children=load_growth_cases_israel(), id='israel_cases_increase'),
         html.Hr()
     ],
     style=SIDEBAR_STYLE,
@@ -210,20 +265,48 @@ content_first_row = dbc.Row([
                     )
                 ],
                 style=FILTER_STYLE,),
+                html.Br(),
+                html.H5('Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]), id="switzerland_vaccines_label", style=TEXT_INFO_STYLE_VACCINATIONS),
                 dcc.Graph(id='graph_5', style = {'display':'none'}),
                 dcc.Graph(id='graph_vaccinations_switzerland', style = {'display':'none'}),
+                html.H5('Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]), id="germany_vaccines_label",style=TEXT_INFO_STYLE_VACCINATIONS),
                 dcc.Graph(id='graph_6', style = {'display':'none'}),
                 dcc.Graph(id='graph_vaccinations_germany', style = {'display':'none'}),
+                html.H5('Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"]), id="israel_vaccines_label",style=TEXT_INFO_STYLE_VACCINATIONS),
                 dcc.Graph(id='graph_7', style = {'display':'none'}),
                 dcc.Graph(id='graph_vaccinations_israel', style = {'display':'none'})
             ]),
-            dcc.Tab(label='Predictions', children=[
+            # code for TAB 4
+            dcc.Tab(label='Cases and Vaccines', children=[
                 #dcc.Graph(id='graph_3')
+            ]),
+            # code for TAB 5
+            dcc.Tab(label='Predictions', children=[
+                html.Br(),
+                html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
+                html.Div([
+                    dcc.Dropdown(
+                        id='country-dropdown-tab4',
+                        options=[
+                            {"label": row[0], "value": row[0]}
+                            for index, row in country_df.iterrows()
+                        ],
+                        value='Germany'
+                    )
+                ],
+                style=FILTER_STYLE,),
+                dcc.Graph(id='graph_pred_flights_ger', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_vaccinations_ger', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_flights_sw', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_vaccinations_sw', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_flights_isr', style = {'display':'none'}),
+                dcc.Graph(id='graph_pred_vaccinations_isr', style = {'display':'none'}),
             ]),
         ])
     )
 ])
 
+# building of the right main part of the dashboard
 content = html.Div(
     [
         html.H2('Air Traffic and Covid Dashboard', style=TEXT_STYLE),
@@ -377,12 +460,8 @@ def update_graph_4(dropdown_value):
     Output('graph_5', 'figure'),
     [Input('country-dropdown-tab3', 'value')],)
 def update_graph_5(dropdown_value):   
-    #normalized_che_flights = preprocessing.normalize(df_che_2021.Flights)
-    #normalized_che_vacc = preprocessing.normalize(df_vacc_che.people_fully_vaccinated)
-    #fig = px.scatter(dfinal, x=dfinal.people_fully_vaccinated_in_percentage, y=dfinal.Flights, color='Entity',title='Sample')
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=dfinal_che.people_fully_vaccinated_in_percentage*100, y=dfinal_che.Flights, name='Flights', mode='markers', marker_color='blue'))
-    #fig.update_yaxes(type="log")
     fig.update_layout(title='Switzerland',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Flights per day')
@@ -406,12 +485,66 @@ def update_graph_6(dropdown_value):
 def update_graph_7(dropdown_value):  
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=dfinal_isr.people_fully_vaccinated_in_percentage*100, y=dfinal_isr.Flights, name='Flights', mode='markers', marker_color='green'))
-    #fig.add_trace(go.Scatter(x=df_isr_2021.Day, y=df_isr_2021.Flights*10000, name='Flights', mode='markers'))
-    #fig.add_trace(go.Scatter(x=df_isr_2021.Day, y=df_vacc_isr.people_fully_vaccinated, name='Vaccinations',
-                        #line = dict(color='red', width=2)))
     fig.update_layout(title='Israel',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Flights per day')
+    return fig
+
+#prediction
+#flights
+@app.callback(
+    Output('graph_pred_flights_ger', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictFlights(germanyFlights, 31)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='blue', width=2)))
+    return fig
+
+@app.callback(
+    Output('graph_pred_flights_sw', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictFlights(switzerlandFlights, 31)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='red', width=2)))
+    return fig
+
+@app.callback(
+    Output('graph_pred_flights_isr', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictFlights(israelFlights, 31)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='green', width=2)))
+    return fig
+
+#vaccinations
+@app.callback(
+    Output('graph_pred_vaccinations_ger', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictVaccinations(germanyVaccinationsPred, 31, 30)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='blue', width=2)))
+    return fig
+
+@app.callback(
+    Output('graph_pred_vaccinations_sw', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictVaccinations(switzerlandVaccinationsPred, 31, 30)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='red', width=2)))
+    return fig
+
+@app.callback(
+    Output('graph_pred_vaccinations_isr', 'figure'),
+     [Input('country-dropdown-tab4', 'value')],)
+def update_graph_pred_flights(dropdown_value):  
+    fig = go.Figure()
+    xVal,yVal = prediction.predictVaccinations(israelVaccinationsPred, 31, 100)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='green', width=2)))
     return fig
 
 #Callbacks that display a graph depending on the country selected in the dropdown
@@ -459,18 +592,20 @@ def update_chart_israel(country):
 
 @app.callback([
     Output("graph_5", "style"),
+    Output("switzerland_vaccines_label", "style"),
     Output("graph_vaccinations_switzerland", "style")],
     [Input("country-dropdown-tab3", "value")],
 )
 
 def update_chart_switzerland_tab3(country):
     if country == "Switzerland":
-        return {'display':'block'}, {'display':'block'}
+        return {'display':'block'}, {'display':'block'}, {'display':'block'}
     else :
-        return {'display':'none'}, {'display':'none'}
+        return {'display':'none'}, {'display':'none'}, {'display':'none'}
 
 @app.callback([
     Output("graph_6", "style"),
+    Output("germany_vaccines_label", "style"),
     Output("graph_vaccinations_germany", "style")],
     [
         Input("country-dropdown-tab3", "value")
@@ -479,12 +614,13 @@ def update_chart_switzerland_tab3(country):
 
 def update_chart_germany_tab3(country):
     if country == "Germany":
-        return {'display':'block'}, {'display':'block'}
+        return {'display':'block'}, {'display':'block'}, {'display':'block'}
     else :
-        return {'display':'none'}, {'display':'none'}
+        return {'display':'none'}, {'display':'none'}, {'display':'none'}
 
 @app.callback([
     Output("graph_7", "style"),
+    Output("israel_vaccines_label", "style"),
     Output("graph_vaccinations_israel", "style")],
     [
         Input("country-dropdown-tab3", "value")
@@ -493,10 +629,54 @@ def update_chart_germany_tab3(country):
 
 def update_chart_israel_tab3(country):
     if country == "Israel":
+        return {'display':'block'}, {'display':'block'}, {'display':'block'}
+    else :
+        return {'display':'none'}, {'display':'none'}, {'display':'none'}
+
+#Callbacks for tab 4
+
+@app.callback([
+    Output("graph_pred_flights_sw", "style"),
+    Output("graph_pred_vaccinations_sw", "style")],
+    [
+        Input("country-dropdown-tab4", "value")
+    ],
+)
+
+def update_chart_switzerland_tab4(country):
+    if country == "Switzerland":
         return {'display':'block'}, {'display':'block'}
     else :
         return {'display':'none'}, {'display':'none'}
 
+@app.callback([
+    Output("graph_pred_flights_ger", "style"),
+    Output("graph_pred_vaccinations_ger", "style")], 
+    [
+        Input("country-dropdown-tab4", "value")
+    ],
+)
+
+def update_chart_germany_tab4(country):
+    if country == "Germany":
+        return {'display':'block'}, {'display':'block'}
+    else :
+        return {'display':'none'}, {'display':'none'}
+
+
+@app.callback([
+    Output("graph_pred_flights_isr", "style"),
+    Output("graph_pred_vaccinations_isr", "style")], 
+    [
+        Input("country-dropdown-tab4", "value")
+    ],
+)
+
+def update_chart_israel_tab4(country):
+    if country == "Israel":
+        return {'display':'block'}, {'display':'block'}
+    else :
+        return {'display':'none'}, {'display':'none'}
 
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0")
