@@ -228,9 +228,8 @@ cases_vacc_isr = df_vacc_isr.merge(total_cases_israel_converted, how='inner', le
 
 content_first_row = dbc.Row([
     dbc.Col(
-        dcc.Tabs(id="tabs-example-graph", value='Map', children=[
-            #code for TAB 1
-            dcc.Tab(label='Map', value='Map', children=[
+        dcc.Tabs(id="tabs-example-graph", value='General', children=[
+            dcc.Tab(label='General', value = 'General', children=[
                 dcc.Graph(id='graph_4'),
                 html.Br(),
                 html.H3('Germany', style=TEXT_INFO_STYLE),
@@ -246,8 +245,7 @@ content_first_row = dbc.Row([
                 html.Br(),
                 dcc.Graph(figure=israel_plot_cases,id='graph_israel_cases')
             ]),
-            # code for TAB 2
-            dcc.Tab(label='Flights comparison', children=[
+            dcc.Tab(label='Flights Comparison', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu. You can filter the displayed years in the graph by clicking on the specific year in the right legend.', style=TEXT_INFO_STYLE),
                 html.Div([
@@ -265,8 +263,7 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_2', style = {'display':'none'}),
                 dcc.Graph(id='graph_3', style = {'display':'none'})
             ]),
-            # code for TAB 3
-            dcc.Tab(label='Covid vs flights', children=[
+            dcc.Tab(label='Covid vs Flights', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu. You can filter the displayed years in the graph by clicking on the specific year in the right legend.', style=TEXT_INFO_STYLE),
                 html.Div([
@@ -462,14 +459,23 @@ def update_graph_4(dropdown_value):
    
     df_map_cases = pd.DataFrame({
     'iso_code': ['DEU', 'CHE','ISR'],
-    'total_cases':['{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"])]
+    'country':['Germany','Switzerland','Israel'],
+    'total_cases':['{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"])],
+    'total_deaths':['{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_deaths"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_deaths"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_deaths"])],
+    'people_fully_vaccinated':['{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"])],
+    'people_fully_vaccinated_in_percentage':[
+        '{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated_in_percentage"] ) ,
+        '{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated_in_percentage"]), 
+        '{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated_in_percentage"])
+        ]
+
     #'today_cases':['{cases:,}'.format(cases = germany.iloc[-1]["Cases"]),'{cases:,}'.format(cases = switzerland.iloc[-1]["Cases"]),'{cases:,}'.format(cases = israel.iloc[-1]["Cases"])]
     })
 
     fig = px.choropleth(df_map_cases, 
                         locations='iso_code', 
-                        color = 'iso_code', 
-                        hover_data = ['total_cases'],
+                        color = 'country', 
+                        hover_data = ['total_cases','total_deaths','people_fully_vaccinated','people_fully_vaccinated_in_percentage'],
                         projection = "mercator",
                         color_continuous_scale = px.colors.sequential.Plasma
                         )
