@@ -19,17 +19,16 @@ from dash.dependencies import Input, Output, State
 from sklearn import preprocessing
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__)
-app.title = 'AirCovid'
+app = dash.Dash(__name__, requests_pathname_prefix='/app/')
 
 db_conn = create_engine("postgresql://username:secret@db:5432/database")
 
 app.logger.info(db_conn.connect())
 
 #data frames for aviation data
-testdf2 = pd.read_sql_query('SELECT * FROM aviation',db_conn)
-df_1 = testdf2.filter(['Entity','Day','Flights'], axis=1)
-df_2 = testdf2.filter(['Entity','Day 2019', 'Flights 2019 (Reference)'], axis=1)
+df_aviation_data = pd.read_sql_query('SELECT * FROM aviation',db_conn)
+df_1 = df_aviation_data.filter(['Entity','Day','Flights'], axis=1)
+df_2 = df_aviation_data.filter(['Entity','Day 2019', 'Flights 2019 (Reference)'], axis=1)
 df_2["Day 2019"]= pd.to_datetime(df_2["Day 2019"])
 df_1.rename(columns={'Entity':'Country'}, inplace=True)
 df_2.rename(columns={'Entity':'Country', 'Day 2019': 'Day', 'Flights 2019 (Reference)': 'Flights'}, inplace=True)
@@ -63,7 +62,7 @@ df_vacc_che = df_vacc[df_vacc['location']=='Switzerland']
 df_vacc_isr = df_vacc[df_vacc['location']=='Israel']
 
 #Merged data frames flights and vaccinations on date and countries
-dfinal = testdf2.merge(df_vacc, how='inner', left_on=['Day','Entity'], right_on=['date','location'])
+dfinal = df_aviation_data.merge(df_vacc, how='inner', left_on=['Day','Entity'], right_on=['date','location'])
 dfinal_ger = dfinal[dfinal['Entity']=='Germany']
 dfinal_che = dfinal[dfinal['Entity']=='Switzerland']
 dfinal_isr = dfinal[dfinal['Entity']=='Israel']
@@ -115,6 +114,11 @@ TEXT_STYLE = {
     #'color': '#191970'
 }
 
+TEXT_STYLE_INCREASE_CASES = {
+    'textAlign': 'left',
+    #'color': '#191970'
+}
+
 TEXT_INFO_STYLE = {
     'textAlign': 'lefrt',
     #'color': '#191970'
@@ -150,21 +154,21 @@ israel_cases_increase = israel.iloc[-1]["Cases"] - israel.iloc[-2]["Cases"]
 
 def load_growth_cases_germany():
     if germany_cases_increase >= 0 :
-        return html.Div([html.Img(id = 'germany_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Increased by: {cases:,}'.format(cases = germany_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = germany_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'germany_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
     else :
-        return html.Div([html.Img(id = 'germany_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Decreased by: {cases:,}'.format(cases = germany_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = germany_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'germany_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
 
 def load_growth_cases_switzerland():
     if switzerland_cases_increase >= 0 :
-        return html.Div([html.Img(id = 'switzerland_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Increased by: {cases:,}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'switzerland_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
     else :
-        return html.Div([html.Img(id = 'switzerland_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Decreased by: {cases:,}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = switzerland_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'switzerland_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
 
 def load_growth_cases_israel():
     if israel_cases_increase >= 0 :
-        return html.Div([html.Img(id = 'israel_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Increased by: {cases:,}'.format(cases = israel_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = israel_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'israel_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-up-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
     else :
-        return html.Div([html.Img(id = 'israel_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'left'}), html.H5('Decreased by: {cases:,}'.format(cases = israel_cases_increase), style=TEXT_STYLE)], style=DIV_IMG_STYLE),
+        return html.Div([html.H5('Decreased by: {cases:,.0f}'.format(cases = israel_cases_increase), style=TEXT_STYLE_INCREASE_CASES), html.Img(id = 'israel_arrow', src='https://img.icons8.com/external-flatart-icons-outline-flatarticons/20/000000/external-down-arrow-arrow-flatart-icons-outline-flatarticons.png', style={'float':'center'})], style=DIV_IMG_STYLE),
 
 # composition of sidebar's live data
 sidebar = html.Div(
@@ -172,15 +176,15 @@ sidebar = html.Div(
         html.H2('Live Data', style=TEXT_STYLE),
         html.Hr(),
         html.H3('Germany', style=TEXT_STYLE),
-        html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = germany.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.H5('Cases on '+ germany.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = germany.iloc[-1]["Cases"]), style=TEXT_STYLE_INCREASE_CASES),
         html.Div(children=load_growth_cases_germany(), id='germany_cases_increase'),
         html.Hr(),
         html.H3('Switzerland', style=TEXT_STYLE),
-        html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = switzerland.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.H5('Cases on '+ switzerland.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = switzerland.iloc[-1]["Cases"]), style=TEXT_STYLE_INCREASE_CASES),
         html.Div(children=load_growth_cases_switzerland(), id='switzerland_cases_increase'),
         html.Hr(),
         html.H3('Israel', style=TEXT_STYLE),
-        html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,}".format(cases = israel.iloc[-1]["Cases"]), style=TEXT_STYLE),
+        html.H5('Cases on '+ israel.iloc[-1]["Date"].date().strftime('%d.%m.%Y') + ": {cases:,.0f}".format(cases = israel.iloc[-1]["Cases"]), style=TEXT_STYLE_INCREASE_CASES),
         html.Div(children=load_growth_cases_israel(), id='israel_cases_increase'),
         html.Hr()
     ],
@@ -221,15 +225,15 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_4'),
                 html.Br(),
                 html.H3('Germany', style=TEXT_INFO_STYLE),
-                html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
+                html.H5('Total cases: {cases:,.0f} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,.0f}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
                 html.Br(),
                 dcc.Graph(figure=germany_plot_cases,id='graph_germany_cases'),
                 html.H3('Switzerland', style=TEXT_INFO_STYLE),
-                html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
+                html.H5('Total cases: {cases:,.0f} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,.0f}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
                 html.Br(),
                 dcc.Graph(figure=switzerland_plot_cases,id='graph_switzerland_cases'),
                 html.H3('Israel', style=TEXT_INFO_STYLE),
-                html.H5('Total cases: {cases:,} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
+                html.H5('Total cases: {cases:,.0f} '.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"]) + ' - Total vaccinated: {vaccinated:,.0f}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"]), style=TEXT_INFO_STYLE),
                 html.Br(),
                 dcc.Graph(figure=israel_plot_cases,id='graph_israel_cases')
             ]),
@@ -266,13 +270,13 @@ content_first_row = dbc.Row([
                 ],
                 style=FILTER_STYLE,),
                 html.Br(),
-                html.H5('Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]), id="switzerland_vaccines_label", style=TEXT_INFO_STYLE_VACCINATIONS),
+                html.H5('Total vaccinated: {vaccinated:,.0f}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]), id="switzerland_vaccines_label", style=TEXT_INFO_STYLE_VACCINATIONS),
                 dcc.Graph(id='graph_5', style = {'display':'none'}),
                 dcc.Graph(id='graph_vaccinations_switzerland', style = {'display':'none'}),
-                html.H5('Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]), id="germany_vaccines_label",style=TEXT_INFO_STYLE_VACCINATIONS),
+                html.H5('Total vaccinated: {vaccinated:,.0f}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]), id="germany_vaccines_label",style=TEXT_INFO_STYLE_VACCINATIONS),
                 dcc.Graph(id='graph_6', style = {'display':'none'}),
                 dcc.Graph(id='graph_vaccinations_germany', style = {'display':'none'}),
-                html.H5('Total vaccinated: {vaccinated:,}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"]), id="israel_vaccines_label",style=TEXT_INFO_STYLE_VACCINATIONS),
+                html.H5('Total vaccinated: {vaccinated:,.0f}'.format(vaccinated = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"]), id="israel_vaccines_label",style=TEXT_INFO_STYLE_VACCINATIONS),
                 dcc.Graph(id='graph_7', style = {'display':'none'}),
                 dcc.Graph(id='graph_vaccinations_israel', style = {'display':'none'})
             ]),
@@ -423,6 +427,9 @@ def update_graph_vaccinations_israel(dropdown_value):
                    yaxis_title='Vaccinated people per day')
     return fig
 
+germany_vaccinated_percentage = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated_in_percentage"] * 100
+switzerland_vaccinated_percentage = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated_in_percentage"] * 100
+israel_vaccinated_percentage = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated_in_percentage"] * 100
 
 @app.callback(
     Output('graph_4', 'figure'),
@@ -433,28 +440,27 @@ def update_graph_4(dropdown_value):
     df_map_cases = pd.DataFrame({
     'iso_code': ['DEU', 'CHE','ISR'],
     'country':['Germany','Switzerland','Israel'],
-    'total_cases':['{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"])],
-    'total_deaths':['{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_deaths"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_deaths"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_deaths"])],
-    'people_fully_vaccinated':['{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]),'{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"])],
+    'total_cases':[' {cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_cases"]),'{cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_cases"]),'{cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_cases"])],
+    'total_deaths':[' {cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["total_deaths"]),'{cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["total_deaths"]),'{cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["total_deaths"])],
+    'people_fully_vaccinated':[' {cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated"]),'{cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated"]),'{cases:,.0f}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated"])],
     'people_fully_vaccinated_in_percentage':[
-        '{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_germany.iloc[-1]["people_fully_vaccinated_in_percentage"] ) ,
-        '{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_switzerland.iloc[-1]["people_fully_vaccinated_in_percentage"]), 
-        '{cases:,}'.format(cases = read_vaccination_data.df_total_vaccinated_and_cases_israel.iloc[-1]["people_fully_vaccinated_in_percentage"])
+        ' {cases:.1f}'.format(cases = germany_vaccinated_percentage) + '%',
+        ' {cases:.1f}'.format(cases = switzerland_vaccinated_percentage) + '%', 
+        ' {cases:.1f}'.format(cases = israel_vaccinated_percentage) + '%'
         ]
-
-    #'today_cases':['{cases:,}'.format(cases = germany.iloc[-1]["Cases"]),'{cases:,}'.format(cases = switzerland.iloc[-1]["Cases"]),'{cases:,}'.format(cases = israel.iloc[-1]["Cases"])]
     })
-
+    df_map_cases = df_map_cases.rename(columns={'total_cases': 'Total cases ', 'total_deaths': 'Total deaths ', 'people_fully_vaccinated': 'Total vaccinated ', 'people_fully_vaccinated_in_percentage': 'Vaccinated in percentage '})
     fig = px.choropleth(df_map_cases, 
                         locations='iso_code', 
                         color = 'country', 
-                        hover_data = ['total_cases','total_deaths','people_fully_vaccinated','people_fully_vaccinated_in_percentage'],
+                        hover_data = ['Total cases ','Total deaths ','Total vaccinated ','Vaccinated in percentage '],
                         projection = "mercator",
                         color_continuous_scale = px.colors.sequential.Plasma
                         )
     fig.update_geos(fitbounds="locations", visible=True)
     fig.update_layout(margin={"r":0,"t":50,"l":0,"b":0})
     return fig
+
 
 @app.callback(
     Output('graph_5', 'figure'),
@@ -677,6 +683,8 @@ def update_chart_israel_tab4(country):
         return {'display':'block'}, {'display':'block'}
     else :
         return {'display':'none'}, {'display':'none'}
+
+app.title = "AirCovid"
 
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0")
