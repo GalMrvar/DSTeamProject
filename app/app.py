@@ -265,7 +265,7 @@ content_first_row = dbc.Row([
             ]),
             dcc.Tab(label='Covid vs Flights', children=[
                 html.Br(),
-                html.H5('Select the country of your choice using the dropdown menu. You can filter the displayed years in the graph by clicking on the specific year in the right legend.', style=TEXT_INFO_STYLE),
+                html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
                 html.Div([
                     dcc.Dropdown(
                         id='country-dropdown-tab3',
@@ -348,6 +348,7 @@ app.layout = html.Div([sidebar, content])
 
 # callbacks section
 
+# graphs for flights comparison of years for each country
 @app.callback(
     Output('graph_1', 'figure'),
     [Input('country-dropdown', 'value')],
@@ -404,10 +405,12 @@ def update_graph_3(dropdown_value):
                    yaxis_title='Flights per day')
     return fig
 
+# query to get vaccinations data
 germanyVaccinations = pd.read_sql_query('''SELECT iso_code, date ,people_fully_vaccinated FROM vaccinations WHERE iso_code = 'DEU' ''',db_conn)
 switzerlandVaccinations = pd.read_sql_query('''SELECT iso_code, date ,people_fully_vaccinated FROM vaccinations WHERE iso_code = 'CHE' ''',db_conn)
 israelVaccinations = pd.read_sql_query('''SELECT iso_code, date ,people_fully_vaccinated FROM vaccinations WHERE iso_code = 'ISR' ''',db_conn)
 
+# graphs for the vaccination rate of each country
 @app.callback(
     Output('graph_vaccinations_switzerland', 'figure'),
     [Input('country-dropdown', 'value')],
@@ -450,7 +453,7 @@ def update_graph_vaccinations_israel(dropdown_value):
                    yaxis_title='Vaccinated people per day')
     return fig
 
-
+# map for the main page
 @app.callback(
     Output('graph_4', 'figure'),
     [Input('country-dropdown', 'value')]
@@ -483,6 +486,7 @@ def update_graph_4(dropdown_value):
     fig.update_layout(margin={"r":0,"t":50,"l":0,"b":0})
     return fig
 
+#graphs for flights and vaccination rate comparison of the countries
 @app.callback(
     Output('graph_5', 'figure'),
     [Input('country-dropdown-tab3', 'value')],)
@@ -517,6 +521,7 @@ def update_graph_7(dropdown_value):
                    yaxis_title='Flights per day')
     return fig
 
+#graphs for the comparison of daily cases with the vaccination rate
 @app.callback(
     Output('graph_cases_vacc_ger', 'figure'),
     [Input('country-dropdown-tab5', 'value')],)
