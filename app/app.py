@@ -561,7 +561,11 @@ def update_graph_cases_vacc_isr(dropdown_value):
 def update_graph_pred_flights(dropdown_value):  
     fig = go.Figure()
     xVal,yVal = prediction.predictFlights(germanyFlights, 31)
-    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='blue', width=2)))
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights prediction', line = dict(color='blue', width=2)))
+    fig.update_layout(title='Germany',
+                   xaxis_title='Date',
+                   yaxis_title='Flights per day')
+    fig.update_layout(hovermode='x unified')
     return fig
 
 @app.callback(
@@ -570,7 +574,11 @@ def update_graph_pred_flights(dropdown_value):
 def update_graph_pred_flights(dropdown_value):  
     fig = go.Figure()
     xVal,yVal = prediction.predictFlights(switzerlandFlights, 31)
-    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='red', width=2)))
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights prediction', line = dict(color='red', width=2)))
+    fig.update_layout(title='Switzerland',
+                   xaxis_title='Date',
+                   yaxis_title='Flights per day')
+    fig.update_layout(hovermode='x unified')
     return fig
 
 @app.callback(
@@ -579,7 +587,11 @@ def update_graph_pred_flights(dropdown_value):
 def update_graph_pred_flights(dropdown_value):  
     fig = go.Figure()
     xVal,yVal = prediction.predictFlights(israelFlights, 31)
-    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights', line = dict(color='green', width=2)))
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Flights prediction', line = dict(color='green', width=2)))
+    fig.update_layout(title='Israel',
+                   xaxis_title='Date',
+                   yaxis_title='Flights per day')
+    fig.update_layout(hovermode='x unified')
     return fig
 
 #vaccinations
@@ -588,8 +600,12 @@ def update_graph_pred_flights(dropdown_value):
      [Input('country-dropdown-tab4', 'value')],)
 def update_graph_pred_flights(dropdown_value):  
     fig = go.Figure()
-    xVal,yVal = prediction.predictVaccinations(germanyVaccinationsPred, 31, 30)
-    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='blue', width=2)))
+    xVal,yVal = prediction.predictVaccinations(germanyVaccinationsPred, 31, 40)
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations prediction', line = dict(color='blue', width=2)))
+    fig.update_layout(title='Germany',
+                   xaxis_title='Date',
+                   yaxis_title='Vaccination rate in %')
+    fig.update_layout(hovermode='x unified')
     return fig
 
 @app.callback(
@@ -598,7 +614,11 @@ def update_graph_pred_flights(dropdown_value):
 def update_graph_pred_flights(dropdown_value):  
     fig = go.Figure()
     xVal,yVal = prediction.predictVaccinations(switzerlandVaccinationsPred, 31, 30)
-    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='red', width=2)))
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='accinations prediction', line = dict(color='red', width=2)))
+    fig.update_layout(title='Switzerland',
+                   xaxis_title='Date',
+                   yaxis_title='Vaccination rate in %')
+    fig.update_layout(hovermode='x unified')
     return fig
 
 @app.callback(
@@ -607,7 +627,11 @@ def update_graph_pred_flights(dropdown_value):
 def update_graph_pred_flights(dropdown_value):  
     fig = go.Figure()
     xVal,yVal = prediction.predictVaccinations(israelVaccinationsPred, 31, 100)
-    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='Vaccinations', line = dict(color='green', width=2)))
+    fig.add_trace(go.Scatter(x=xVal, y=yVal, name='accinations prediction', line = dict(color='green', width=2)))
+    fig.update_layout(title='Israel',
+                   xaxis_title='Date',
+                   yaxis_title='Vaccination rate in %')
+    fig.update_layout(hovermode='x unified')
     return fig
 
 #Callbacks that display a graph depending on the country selected in the dropdown
