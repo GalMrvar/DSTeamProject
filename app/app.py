@@ -500,7 +500,10 @@ def update_graph_4(dropdown_value):
     [Input('country-dropdown-tab3', 'value')],)
 def update_graph_5(dropdown_value):   
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=dfinal_che.people_fully_vaccinated_in_percentage*100, y=dfinal_che.Flights, name='Flights', mode='markers', marker_color='red'))
+    fig.add_trace(go.Scatter(x=dfinal_che.people_fully_vaccinated_in_percentage*100, y=dfinal_che.Flights, name='Flights', mode='markers', marker_color='red', text=dfinal['Day'], hovertemplate =
+    '<br>Flights: %{y}<br>'+
+    '% Vaccination Rate: %{x:%.2f}<br>'+
+    'Date: %{text}',))
     fig.update_layout(title='Switzerland',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Flights per day')
@@ -511,7 +514,10 @@ def update_graph_5(dropdown_value):
     [Input('country-dropdown-tab3', 'value')],)
 def update_graph_6(dropdown_value):      
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=dfinal_ger.people_fully_vaccinated_in_percentage*100, y=dfinal_ger.Flights, name='Flights', mode='markers', marker_color='blue'))
+    fig.add_trace(go.Scatter(x=dfinal_ger.people_fully_vaccinated_in_percentage*100, y=dfinal_ger.Flights, name='Flights', mode='markers', marker_color='blue', text=dfinal['Day'], hovertemplate =
+    '<br>Flights: %{y}<br>'+
+    '% Vaccination Rate: %{x:%.2f}<br>'+
+    'Date: %{text}',))
     fig.update_layout(title='Germany',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Flights per day')
@@ -523,7 +529,10 @@ def update_graph_6(dropdown_value):
     [Input('country-dropdown-tab3', 'value')],)
 def update_graph_7(dropdown_value):  
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=dfinal_isr.people_fully_vaccinated_in_percentage*100, y=dfinal_isr.Flights, name='Flights', mode='markers', marker_color='green'))
+    fig.add_trace(go.Scatter(x=dfinal_isr.people_fully_vaccinated_in_percentage*100, y=dfinal_isr.Flights, name='Flights', mode='markers', marker_color='green', text=dfinal['Day'], hovertemplate =
+    '<br>Flights: %{y}<br>'+
+    '% Vaccination Rate: %{x:%.2f}<br>'+
+    'Date: %{text}',))
     fig.update_layout(title='Israel',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Flights per day')
@@ -535,11 +544,13 @@ def update_graph_7(dropdown_value):
     [Input('country-dropdown-tab5', 'value')],)
 def update_graph_cases_vacc_ger(dropdown_value):  
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=cases_vacc_ger.people_fully_vaccinated_in_percentage*100, y=cases_vacc_ger.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='blue'))
+    fig.add_trace(go.Scatter(x=cases_vacc_ger.people_fully_vaccinated_in_percentage*100, y=cases_vacc_ger.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='blue', text=cases_vacc_ger['date'], hovertemplate =
+    '<br>Cases: %{y}<br>'+
+    '% Vaccination Rate: %{x:%.2f}<br>'+
+    'Date: %{text}',))
     fig.update_layout(title='Germany',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Cases per day')
-    fig.update_layout(hovermode='x unified')
     return fig
 
 @app.callback(
@@ -547,7 +558,10 @@ def update_graph_cases_vacc_ger(dropdown_value):
     [Input('country-dropdown-tab5', 'value')],)
 def update_graph_cases_vacc_che(dropdown_value):  
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=cases_vacc_che.people_fully_vaccinated_in_percentage*100, y=cases_vacc_che.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='red'))
+    fig.add_trace(go.Scatter(x=cases_vacc_che.people_fully_vaccinated_in_percentage*100, y=cases_vacc_che.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='red', text=cases_vacc_ger['date'], hovertemplate =
+    '<br>Cases: %{y}<br>'+
+    '% Vaccination Rate: %{x:%.2f}<br>'+
+    'Date: %{text}',))
     fig.update_layout(title='Switzerland',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Cases per day')
@@ -559,7 +573,10 @@ def update_graph_cases_vacc_che(dropdown_value):
     [Input('country-dropdown-tab5', 'value')],)
 def update_graph_cases_vacc_isr(dropdown_value):  
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=cases_vacc_isr.people_fully_vaccinated_in_percentage*100, y=cases_vacc_isr.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='green'))
+    fig.add_trace(go.Scatter(x=cases_vacc_isr.people_fully_vaccinated_in_percentage*100, y=cases_vacc_isr.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='green', text=cases_vacc_ger['date'], hovertemplate =
+    '<br>Cases: %{y}<br>'+
+    '% Vaccination Rate: %{x:%.2f}<br>'+
+    'Date: %{text}',))
     fig.update_layout(title='Israel',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Cases per day')
