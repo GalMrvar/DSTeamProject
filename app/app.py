@@ -213,6 +213,18 @@ israel_plot_cases.add_trace(go.Scatter(x=israelCases.Date, y=israelCases.Cases, 
 israel_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
 israel_plot_cases.update_layout(title='Covid cases in Israel',xaxis_title='Month',yaxis_title='Flights per day')
 
+#Convert Date of total_cases data to datetime[ns] for merging data frames
+total_cases_germany_converted = pd.read_sql_query("""SELECT "Date", "Cases", "Country"  FROM "apiCases" WHERE "Country" = 'Germany' AND "Cases" > '0'""",db_conn)
+total_cases_germany_converted['Date'] = total_cases_germany_converted['Date'].dt.tz_convert(None)
+total_cases_israel_converted = pd.read_sql_query("""SELECT "Date", "Cases", "Country" FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" > '0'""",db_conn)
+total_cases_israel_converted['Date'] = total_cases_israel_converted['Date'].dt.tz_convert(None)
+total_cases_switzerland_converted = pd.read_sql_query("""SELECT "Date", "Cases", "Country" FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" > '0'""",db_conn)
+total_cases_switzerland_converted['Date'] = total_cases_switzerland_converted['Date'].dt.tz_convert(None)
+
+#Merged data frames of cases and vaccinations on date and countries
+cases_vacc_ger = df_vacc_ger.merge(total_cases_germany_converted, how='inner', left_on=['date','location'], right_on=['Date','Country'])
+cases_vacc_che = df_vacc_che.merge(total_cases_switzerland_converted, how='inner', left_on=['date','location'], right_on=['Date','Country'])
+cases_vacc_isr = df_vacc_isr.merge(total_cases_israel_converted, how='inner', left_on=['date','location'], right_on=['Date','Country'])
 
 content_first_row = dbc.Row([
     dbc.Col(
@@ -281,7 +293,22 @@ content_first_row = dbc.Row([
             ]),
             # code for TAB 4
             dcc.Tab(label='Cases and Vaccines', children=[
-                #dcc.Graph(id='graph_3')
+                html.Br(),
+                html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
+                html.Div([
+                    dcc.Dropdown(
+                        id='country-dropdown-tab5',
+                        options=[
+                            {"label": row[0], "value": row[0]}
+                            for index, row in country_df.iterrows()
+                        ],
+                        value='Germany'
+                    )
+                ],
+                style=FILTER_STYLE,),
+                dcc.Graph(id='graph_cases_vacc_ger', style = {'display':'none'}),
+                dcc.Graph(id='graph_cases_vacc_che', style = {'display':'none'}),
+                dcc.Graph(id='graph_cases_vacc_isr', style = {'display':'none'})
             ]),
             # code for TAB 5
             dcc.Tab(label='Predictions', children=[
@@ -455,7 +482,7 @@ def update_graph_4(dropdown_value):
     [Input('country-dropdown-tab3', 'value')],)
 def update_graph_5(dropdown_value):   
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=dfinal_che.people_fully_vaccinated_in_percentage*100, y=dfinal_che.Flights, name='Flights', mode='markers', marker_color='blue'))
+    fig.add_trace(go.Scatter(x=dfinal_che.people_fully_vaccinated_in_percentage*100, y=dfinal_che.Flights, name='Flights', mode='markers', marker_color='red'))
     fig.update_layout(title='Switzerland',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Flights per day')
@@ -466,7 +493,7 @@ def update_graph_5(dropdown_value):
     [Input('country-dropdown-tab3', 'value')],)
 def update_graph_6(dropdown_value):      
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=dfinal_ger.people_fully_vaccinated_in_percentage*100, y=dfinal_ger.Flights, name='Flights', mode='markers', marker_color='red'))
+    fig.add_trace(go.Scatter(x=dfinal_ger.people_fully_vaccinated_in_percentage*100, y=dfinal_ger.Flights, name='Flights', mode='markers', marker_color='blue'))
     fig.update_layout(title='Germany',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Flights per day')
@@ -482,6 +509,42 @@ def update_graph_7(dropdown_value):
     fig.update_layout(title='Israel',
                    xaxis_title='Vaccination rate in %',
                    yaxis_title='Flights per day')
+    return fig
+
+@app.callback(
+    Output('graph_cases_vacc_ger', 'figure'),
+    [Input('country-dropdown-tab5', 'value')],)
+def update_graph_cases_vacc_ger(dropdown_value):  
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=cases_vacc_ger.people_fully_vaccinated_in_percentage*100, y=cases_vacc_ger.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='blue'))
+    fig.update_layout(title='Germany',
+                   xaxis_title='Vaccination rate in %',
+                   yaxis_title='Cases per day')
+    fig.update_layout(hovermode='x unified')
+    return fig
+
+@app.callback(
+    Output('graph_cases_vacc_che', 'figure'),
+    [Input('country-dropdown-tab5', 'value')],)
+def update_graph_cases_vacc_che(dropdown_value):  
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=cases_vacc_che.people_fully_vaccinated_in_percentage*100, y=cases_vacc_che.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='red'))
+    fig.update_layout(title='Switzerland',
+                   xaxis_title='Vaccination rate in %',
+                   yaxis_title='Cases per day')
+    fig.update_layout(hovermode='x unified')
+    return fig
+
+@app.callback(
+    Output('graph_cases_vacc_isr', 'figure'),
+    [Input('country-dropdown-tab5', 'value')],)
+def update_graph_cases_vacc_isr(dropdown_value):  
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=cases_vacc_isr.people_fully_vaccinated_in_percentage*100, y=cases_vacc_isr.Cases, name='Cases vs. Vaccinations', fill='tozeroy', mode='lines', line_color='green'))
+    fig.update_layout(title='Israel',
+                   xaxis_title='Vaccination rate in %',
+                   yaxis_title='Cases per day')
+    fig.update_layout(hovermode='x unified')
     return fig
 
 #prediction
@@ -628,6 +691,45 @@ def update_chart_israel_tab3(country):
         return {'display':'none'}, {'display':'none'}, {'display':'none'}
 
 #Callbacks for tab 4
+@app.callback(
+    Output("graph_cases_vacc_che", "style"),
+    [Input("country-dropdown-tab5", "value")],
+)
+
+def update_chart_switzerland_tab5(country):
+    if country == "Switzerland":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
+
+@app.callback(
+    Output("graph_cases_vacc_ger", "style"), 
+    [
+        Input("country-dropdown-tab5", "value")
+    ],
+)
+
+def update_chart_germany_tab5(country):
+    if country == "Germany":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
+
+
+@app.callback(
+    Output("graph_cases_vacc_isr", "style"),
+    [
+        Input("country-dropdown-tab5", "value")
+    ],
+)
+
+def update_chart_israel_tab5(country):
+    if country == "Israel":
+        return {'display':'block'}
+    else :
+        return {'display':'none'}
+
+#Callbacks for tab 5
 
 @app.callback([
     Output("graph_pred_flights_sw", "style"),
