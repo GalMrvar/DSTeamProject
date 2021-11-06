@@ -6,15 +6,20 @@ In order to run the program you need to have Docker installed.
 
 run first ```bash docker-compose build ``` in your terminal inside the project directory.
 
+Then run ```bash docker-compose up ```.
+
+You can now navigate the Dashboard by opening your browser and using the url ```localhost:8050```
+
+## (Optional!) Installation in case of api not being accessible:
+After you run ```bash docker-compose build``` command you have to import dumped database with following these next steps:
+
 In order to import database (which includes all data collected) use the following command:
 ```bash
 cat db_dump.sql | docker exec -i your-db-container_id psql -U username
 ``` 
 where db_dump represents the location of dumped .sql file
 
-Then run ```bash docker-compose up ```.
-
-You can now navigate the Dashboard by opening your browser and using the url ```localhost:8050```
+Then you can run ```bash docker-compose up ```
 
 ## For developers:
 
