@@ -74,11 +74,6 @@ germany = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Germa
 israel = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" > 0 ORDER BY "Date" ASC """,db_conn)
 switzerland = pd.read_sql_query("""SELECT * FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" > 0 ORDER BY "Date" ASC """,db_conn)
 
-#Total cases Data frames for api data
-total_cases_germany = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Germany' ORDER BY "Date" DESC """,db_conn)
-total_cases_israel = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Israel' ORDER BY "Date" DESC """,db_conn)
-total_cases_switzerland = pd.read_sql_query("""SELECT * FROM "totalCases" WHERE "Country" = 'Switzerland' ORDER BY "Date" DESC """,db_conn)
-
 #Vacination data used for prediction
 germanyVaccinationsPred = pd.read_sql_query('''SELECT date ,people_fully_vaccinated_in_percentage FROM vaccinations 
 WHERE iso_code = 'DEU' AND people_fully_vaccinated_in_percentage > 0 ''',db_conn)
