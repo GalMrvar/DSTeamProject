@@ -1,5 +1,5 @@
 # DSTeamProject
-github repository for a team project at Data Science Course
+Github repository for a team project for the Data Science and Society course at Utrecht University
 
 ## Installation
 In order to run the program you need to have Docker installed.
