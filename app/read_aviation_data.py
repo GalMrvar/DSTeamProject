@@ -40,7 +40,7 @@ flights_data_processed = flights_data_processed.append(deu_flights21_data)
 flights_data_processed = flights_data_processed.append(che_flights21_data)
 flights_data_processed = flights_data_processed.append(isr_flights21_data)
 
+# dataframe written to the database
 db_conn = create_engine("postgresql://username:secret@db:5432/database")
-
 flights_data_processed.to_sql('aviation', db_conn, if_exists='replace')
 

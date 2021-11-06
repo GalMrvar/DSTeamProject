@@ -1,3 +1,5 @@
+# Methods definitions for prediction's calculations
+
 import pandas as pd
 from sqlalchemy import create_engine
 from datetime import datetime, time, timedelta
@@ -13,7 +15,7 @@ def predictFlights(flights, number_of_days):
     # split dataset
     X = flights.values
     train = X[0:len(X)-1]
-     # train autoregression/create mode
+    # train autoregression/create mode
     model = AutoReg(train, lags=31)
     model_fit = model.fit()
     # make predictions to desired day

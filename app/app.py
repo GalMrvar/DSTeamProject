@@ -1,3 +1,5 @@
+# Main class where the dashboard is built
+
 import dash
 from sqlalchemy import create_engine
 from dash import html as html
@@ -91,7 +93,8 @@ israelFlights = pd.read_sql_query("""SELECT "Day", "Flights" FROM "aviation" WHE
 switzerlandFlights = pd.read_sql_query("""SELECT "Day", "Flights" FROM "aviation" WHERE "Entity" = 'Switzerland' AND EXTRACT(YEAR from "Day")='2021' """,db_conn)
 
 
-# the style arguments for the sidebar.
+# the style definitions for the different html elements in the dashboard
+
 SIDEBAR_STYLE = {
     'position': 'fixed',
     'top': 0,
@@ -102,7 +105,6 @@ SIDEBAR_STYLE = {
     'background-color': '#f8f9fa'
 }
 
-# the style arguments for the main content page.
 CONTENT_STYLE = {
     'margin-left': '25%',
     'margin-right': '5%',
@@ -111,8 +113,7 @@ CONTENT_STYLE = {
 
 TEXT_STYLE = {
     'textAlign': 'center',
-    #'color': '#191970'
-}
+    }
 
 LABEL_STYLE_INCREASE_CASES = {
     'textAlign': 'left'
@@ -130,18 +131,15 @@ TEXT_STYLE_DECREASE_CASES = {
 
 TEXT_INFO_STYLE = {
     'textAlign': 'lefrt',
-    #'color': '#191970'
 }
 
 TEXT_INFO_STYLE_VACCINATIONS = {
     'textAlign': 'center',
-    #'color': '#191970',
     'display': 'none'
 }
 
 FILTER_STYLE = {
     'textAlign': 'Left',
-    #'color': '#0074D9',
     'margin-right': '65%',
     'margin-top': '5%',
     'margin-bottom': '2%',
@@ -155,13 +153,12 @@ DIV_IMG_STYLE = {
 
 
 
-# load different content if the cases increase or decrease
-
+# calculation of the growth/decay of positive cases 
 germany_cases_increase = germany.iloc[-1]["Cases"] - germany.iloc[-2]["Cases"]
 switzerland_cases_increase = switzerland.iloc[-1]["Cases"] - switzerland.iloc[-2]["Cases"]
 israel_cases_increase = israel.iloc[-1]["Cases"] - israel.iloc[-2]["Cases"]
 
-
+# method that load different contents if the growth of the cases is positive or negative
 def load_growth_cases_germany():
     if germany_cases_increase >= 0 :
         return html.Div([html.H5('Increased by: {cases:,.0f}'.format(cases = germany_cases_increase), style=TEXT_STYLE_INCREASE_CASES)], style=DIV_IMG_STYLE),
@@ -209,9 +206,10 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
-country_df = pd.read_sql_query('SELECT distinct "Entity" FROM aviation',db_conn) # create list of countrie for the dropdown menu
+# create list of countries for the dropdown menu
+country_df = pd.read_sql_query('SELECT distinct "Entity" FROM aviation',db_conn) 
 
-# germany dataframe for the cases over time graph
+# germany dataframe for the cases over time and graph
 germanyCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Germany' AND "Cases" > '0'""",db_conn)
 
 germany_plot_cases = go.Figure()
@@ -219,7 +217,7 @@ germany_plot_cases.add_trace(go.Scatter(x=germanyCases.Date, y=germanyCases.Case
 germany_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
 germany_plot_cases.update_layout(title='Covid cases in Germany',xaxis_title='Month',yaxis_title='Cases per day')
 
-# switzerland dataframe for the cases over time graph
+# switzerland dataframe for the cases over time and graph
 switzerlandCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Switzerland' AND "Cases" > '0'""",db_conn)
 
 switzerland_plot_cases = go.Figure()
@@ -227,7 +225,7 @@ switzerland_plot_cases.add_trace(go.Scatter(x=switzerlandCases.Date, y=switzerla
 switzerland_plot_cases.update_xaxes(dtick="M1", tickformat="%d %B")
 switzerland_plot_cases.update_layout(title='Covid cases in Switzerland',xaxis_title='Month',yaxis_title='Cases per day')
 
-# israel dataframe for the cases over time graph
+# israel dataframe for the cases over time and graph
 israelCases = pd.read_sql_query("""SELECT "Date", "Cases" FROM "apiCases" WHERE "Country" = 'Israel' AND "Cases" > '0'""",db_conn)
 
 israel_plot_cases = go.Figure()
@@ -248,9 +246,11 @@ cases_vacc_ger = df_vacc_ger.merge(total_cases_germany_converted, how='inner', l
 cases_vacc_che = df_vacc_che.merge(total_cases_switzerland_converted, how='inner', left_on=['date','location'], right_on=['Date','Country'])
 cases_vacc_isr = df_vacc_isr.merge(total_cases_israel_converted, how='inner', left_on=['date','location'], right_on=['Date','Country'])
 
-content_first_row = dbc.Row([
+# building of the main content of the dashboard
+tabs_content = dbc.Row([
     dbc.Col(
         dcc.Tabs(id="tabs-example-graph", value='General', children=[
+            # general tab
             dcc.Tab(label='General', value = 'General', children=[
                 dcc.Graph(id='graph_4'),
                 html.Br(),
@@ -267,6 +267,7 @@ content_first_row = dbc.Row([
                 html.Br(),
                 dcc.Graph(figure=israel_plot_cases,id='graph_israel_cases')
             ]),
+            # tab for the comparison of flights over the years
             dcc.Tab(label='Flights Comparison', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu. You can filter the displayed years in the graph by clicking on the specific year in the right legend.', style=TEXT_INFO_STYLE),
@@ -285,6 +286,7 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_2', style = {'display':'none'}),
                 dcc.Graph(id='graph_3', style = {'display':'none'})
             ]),
+            # tab for analysing the impact of vaccines over air traffic 
             dcc.Tab(label='Covid vs Flights', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
@@ -313,7 +315,7 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_7', style = {'display':'none'}),
                 dcc.Graph(id='graph_vaccinations_israel', style = {'display':'none'})
             ]),
-            # code for TAB 4
+            # tab for analysing the impact of vaccines over positive cases
             dcc.Tab(label='Cases and Vaccines', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
@@ -335,7 +337,7 @@ content_first_row = dbc.Row([
                 dcc.Graph(id='graph_cases_vacc_che', style = {'display':'none'}),
                 dcc.Graph(id='graph_cases_vacc_isr', style = {'display':'none'})
             ]),
-            # code for TAB 5
+            # tab for the predictions of the number of flights for the next month
             dcc.Tab(label='Predictions', children=[
                 html.Br(),
                 html.H5('Select the country of your choice using the dropdown menu.', style=TEXT_INFO_STYLE),
@@ -361,14 +363,14 @@ content_first_row = dbc.Row([
     )
 ])
 
-# building of the right main part of the dashboard
+# building of the main part of the dashboard
 content = html.Div(
     [
         html.Br(),
         html.H2('Air Traffic and Covid Dashboard', style=TEXT_STYLE),
         html.Br(),
         html.Hr(),
-        content_first_row,
+        tabs_content,
     ],
     style=CONTENT_STYLE
 )
@@ -691,7 +693,6 @@ def update_graph_pred_flights(dropdown_value):
     return fig
 
 #Callbacks that display a graph depending on the country selected in the dropdown
-
 @app.callback(
     Output("graph_1", "style"),
     [Input("country-dropdown", "value")],
@@ -732,7 +733,6 @@ def update_chart_israel(country):
 
 
 # Callbacks for the dropdown on 3rd tab
-
 @app.callback([
     Output("graph_5", "style"),
     Output("switzerland_vaccines_label", "style"),
@@ -776,7 +776,7 @@ def update_chart_israel_tab3(country):
     else :
         return {'display':'none'}, {'display':'none'}, {'display':'none'}
 
-#Callbacks for tab 4
+#Callbacks for the dropdown in tab 4
 @app.callback(
     Output("graph_cases_vacc_che", "style"),
     [Input("country-dropdown-tab5", "value")],
@@ -815,8 +815,7 @@ def update_chart_israel_tab5(country):
     else :
         return {'display':'none'}
 
-#Callbacks for tab 5
-
+#Callbacks for the graphs in tab 5
 @app.callback([
     Output("graph_pred_flights_sw", "style"),
     Output("graph_pred_vaccinations_sw", "style")],

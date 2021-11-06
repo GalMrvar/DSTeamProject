@@ -1,3 +1,5 @@
+# Methods definition for the retrieval of dynamic data from the API
+
 import requests
 import json
 import pandas as pd
@@ -86,38 +88,3 @@ else:
     #new table add 
     dateFrom = datetime(2020, 1, 1)
     processDataFromApi(dateFrom, True)
-
-def processTotalCasesFromApi(newTable):
-    
-    germany_api_total_cases = callApi("https://api.covid19api.com/live/country/germany/status/confirmed")
-    pd_germany_total_cases = readFromJsonToPdCountryTotalCases(germany_api_total_cases)
-    
-    switzerland_api_total_cases = callApi("https://api.covid19api.com/live/country/switzerland/status/confirmed")
-    pd_switzerland_total_cases = readFromJsonToPdCountryTotalCases(switzerland_api_total_cases)
-    
-    israel_api_total_cases = callApi("https://api.covid19api.com/live/country/israel/status/confirmed")
-    pd_israel_total_cases = readFromJsonToPdCountryTotalCases(israel_api_total_cases)
-    
-    ##group total cases DataFrames all together:
-    pd_all_countries_total_cases = pd_germany_total_cases.append(pd_switzerland_total_cases)
-    pd_all_countries_total_cases = pd_all_countries_total_cases.append(pd_israel_total_cases)
-    
-    if(newTable):
-        pd_all_countries_total_cases.to_sql('totalCases', db_conn, if_exists='replace')
-    else:
-        #create temp table
-        pd_all_countries_total_cases.to_sql('tmp_totalCases', db_conn, if_exists='replace')
-        #remove all values that match the temp table (from the original table)
-        sql = """
-                delete from "totalCases" t1 where "Date" in (select "Date" from "tmp_totalCases" t2 WHERE t1."Country" = t2."Country")
-            """
-        db_conn.execute(sql)
-        #then append cases to the original table
-        pd_all_countries_total_cases.to_sql('totalCases', db_conn, if_exists='append')
-
-if(inspect(db_conn).has_table("totalCases")):
-    #old table add update and append missing values
-    processTotalCasesFromApi(False)
-else:
-    #new table add 
-    processTotalCasesFromApi(True)
