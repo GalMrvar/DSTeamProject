@@ -13,11 +13,17 @@ You can now navigate the Dashboard by opening your browser and using the url ```
 ## (Optional!) Installation in case of api not being accessible:
 After you run ```bash docker-compose build``` command you have to import dumped database with following these next steps:
 
-In order to import database (which includes all data collected) use the following command:
+In order to import database (which includes all data collected) use the following command (windows powershell or linux command prompt):
 ```bash
-cat db_dump.sql | docker exec -i your-db-container_id psql -U username
+cat <path_to_dump_on_pc> | docker exec -i <db_docker_container_id> psql -d database -U username
 ``` 
-where db_dump represents the location of dumped .sql file
+where <path_to_dump_on_pc> represents the location of dumped.sql file
+
+In order to find your running docker container ID use: 
+
+```bash
+docker ps
+``` 
 
 Then you can run ```bash docker-compose up ```
 
